@@ -98,7 +98,7 @@ jobs:
           images: ${{ steps.image.outputs.name }}
           tags: ${{ steps.image.outputs.tags }}
           labels: |
-            org.opencontainers.image.title=template-api
+            org.opencontainers.image.title=unah-red-tutores-api
             org.opencontainers.image.description=Headless Express API template
             org.opencontainers.image.vendor=Asterki
 

@@ -44,7 +44,7 @@ the P0-03 ADR: the adapter receives a
 |---|---|
 | `server/.env` (local development) | `DATABASE_URL`, `MIGRATE_DATABASE_URL`, and the `MYSQL_*` values read by `compose.dev.yaml`. |
 | `.env.prod` or `.env` on the host | The same two DSNs plus `MYSQL_*` for `compose.prod.yaml`. |
-| `compose.dev.yaml` and `compose.prod.yaml` | `MYSQL_*` and the named volume (`mariadb-data`). Changing the database name or volume without recreating the volume leaves the old data behind. |
+| `compose.dev.yaml` and `compose.prod.yaml` | `MYSQL_*` and the named volume (`unah-red-tutores-unah-red-tutores-mariadb-data`). Changing the database name or volume without recreating the volume leaves the old data behind. |
 | `compose.ghcr.yaml` | `.env` only. The image is immutable; there is no build step and no mysql settings in the file. |
 | CI (`.github/workflows/ci.yml`) | The MariaDB service container values (`MARIADB_*`) and the `DATABASE_URL` / `MIGRATE_DATABASE_URL` env block. |
 | Vercel | Nothing. The SPA never talks to the database. |

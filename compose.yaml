@@ -17,7 +17,7 @@ services:
     ports: # Just for development, remove in production
       - "3306:3306"
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - unah-red-tutores-unah-red-tutores-mariadb-data:/var/lib/mysql
 
   server:
     build:
@@ -43,4 +43,4 @@ services:
 
 volumes:
   redis-data:
-  mariadb-data:
+  unah-red-tutores-unah-red-tutores-mariadb-data:

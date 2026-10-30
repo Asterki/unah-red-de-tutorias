@@ -1,4 +1,4 @@
-# Template App
+# Red de Tutores UNAH
 
 A reusable single-tenant admin template: a headless Express API, a React SPA
 and a Prisma-free shared contract package, wired for MariaDB, session auth and

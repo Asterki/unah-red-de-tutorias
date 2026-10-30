@@ -1,4 +1,4 @@
-import { rolesApi } from "@template/shared";
+import { rolesApi } from "@unah-red-tutores/shared";
 
 import { api } from "../../utils/api";
 

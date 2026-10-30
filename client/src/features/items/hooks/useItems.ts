@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { ItemDto, ListItemsQuery, PageMeta } from "@template/shared";
+import type { ItemDto, ListItemsQuery, PageMeta } from "@unah-red-tutores/shared";
 
 import { itemsApi } from "../api";
 import { normalizeApiError } from "../../../utils/api";

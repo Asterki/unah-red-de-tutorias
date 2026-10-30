@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { RequestHandler } from "express";
 import passport from "passport";
-import type { ChangePasswordRequest } from "@template/shared";
+import type { ChangePasswordRequest } from "@unah-red-tutores/shared";
 
 import type { AppConfig } from "../config/index.js";
 import {

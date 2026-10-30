@@ -1,13 +1,13 @@
 {
-  "name": "@template/client",
+  "name": "@unah-red-tutores/client",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "license": "MIT",
-  "author": "Fernando David Rivera Ulloa",
+  "author": "Asterki",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Asterki/template-crud-mariadb-rbac.git"
+    "url": "https://github.com/Asterki/template-crud-mariadb-rbac"
   },
   "homepage": "https://github.com/Asterki/template-crud-mariadb-rbac#readme",
   "bugs": {
@@ -33,7 +33,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.1",
     "@tanstack/react-router": "^1.132.0",
-    "@template/shared": "file:../shared",
+    "@unah-red-tutores/shared": "file:../shared",
     "antd": "^5.27.6",
     "axios": "^1.12.2",
     "i18next": "^25.5.2",

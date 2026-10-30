@@ -1,4 +1,4 @@
-import { authApi as authContracts } from "@template/shared";
+import { authApi as authContracts } from "@unah-red-tutores/shared";
 
 import { api, resetCsrfToken } from "../../utils/api";
 

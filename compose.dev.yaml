@@ -1,4 +1,4 @@
-name: template-dev
+name: unah-red-tutores-dev
 
 services:
   mariadb:
@@ -10,7 +10,7 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - unah-red-tutores-unah-red-tutores-mariadb-data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
@@ -22,6 +22,8 @@ services:
     image: adminer:5.3.0
     profiles: ["tools"]
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -29,4 +31,4 @@ services:
       - "127.0.0.1:8080:8080"
 
 volumes:
-  mariadb-data:
+  unah-red-tutores-unah-red-tutores-mariadb-data:

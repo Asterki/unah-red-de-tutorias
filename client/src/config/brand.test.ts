@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BRAND_COLOR } from "@template/shared";
+import { BRAND_COLOR } from "@unah-red-tutores/shared";
 
 import {
   brand,

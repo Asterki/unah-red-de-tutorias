@@ -4,7 +4,7 @@ import type {
   ChangePasswordRequest,
   LoginRequest,
   SessionAccountDto,
-} from "@template/shared";
+} from "@unah-red-tutores/shared";
 
 import authApi from "./api";
 import { normalizeApiError, type NormalizedApiError } from "../../utils/api";

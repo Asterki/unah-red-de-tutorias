@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Alert, App, Button, Card, Input, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { changePasswordSchema } from "@template/shared";
+import { changePasswordSchema } from "@unah-red-tutores/shared";
 
 import AdminPageLayout from "../../layouts/Admin";
 import AuthFeature from "../../features/auth";

@@ -7,7 +7,7 @@ import type {
   Paginated,
   Role,
   UpdateAccountRequest,
-} from "@template/shared";
+} from "@unah-red-tutores/shared";
 
 import {
   appendHistory,

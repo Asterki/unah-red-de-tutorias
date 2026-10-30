@@ -45,7 +45,7 @@ Stages:
 4. `prod-deps`: `npm ci --omit=dev` in `server/` (include `prisma` CLI as a runtime dependency if the `migrate` service needs it; otherwise copy it from the builder; choose the smaller working option and record it).
 5. `runtime`: copy `dist`, `prisma/` (schema and migrations), `prisma.config.ts`, prod `node_modules`, the generated Prisma client and `docs/in-app`; `ENV NODE_ENV=production`; `USER node`; `ENTRYPOINT ["/sbin/tini","--"]`; `CMD ["node","dist/main.js"]` (exec form); `HEALTHCHECK CMD wget -qO- http://127.0.0.1:${PORT:-3000}/healthz || exit 1`; no client files; `EXPOSE` the default port.
 Do not bake secrets or `.env` files. The migrate job reuses this image with a different command (`CMD` override).
-Verify: `docker build -t template-api:test .`; `docker run --rm template-api:test id` shows a non-root uid; `docker run --rm template-api:test ls` shows no `client`; running without env prints a clean config error and exits non-zero; `docker image inspect` size is reasonable (report it).
+Verify: `docker build -t unah-red-tutores-api:test .`; `docker run --rm unah-red-tutores-api:test id` shows a non-root uid; `docker run --rm unah-red-tutores-api:test ls` shows no `client`; running without env prints a clean config error and exits non-zero; `docker image inspect` size is reasonable (report it).
 
 ## Task P5-02 — Development compose
 Commit: `build: add development compose`
@@ -63,7 +63,7 @@ Verify: `docker compose -f compose.prod.yaml config`; with a throwaway `.env`, `
 ## Task P5-04 — GHCR pull-only compose
 Commit: `build: add ghcr pull-only compose`
 `compose.ghcr.yaml`: same as prod but `image: ghcr.io/${GHCR_OWNER}/${IMAGE_NAME}:${IMAGE_TAG:-latest}` for both `migrate` and `api` and **no `build:` key anywhere**. `.env.ghcr.example` with only the variables needed to run (DB passwords, `DATABASE_URL`, `MIGRATE_DATABASE_URL`, `SESSION_SECRET`, `CORS_ORIGINS`, `ORIGIN_SECRET`, bootstrap admin, `GHCR_OWNER`, `IMAGE_NAME`, `IMAGE_TAG`, `PORT`). README quick start: `docker login ghcr.io`, `cp .env.ghcr.example .env`, `docker compose -f compose.ghcr.yaml pull`, `up -d`.
-Verify: `docker compose -f compose.ghcr.yaml config | grep -c "build:"` prints 0. To test end to end, tag the local image `ghcr.io/example/template-api:test` and run with those values.
+Verify: `docker compose -f compose.ghcr.yaml config | grep -c "build:"` prints 0. To test end to end, tag the local image `ghcr.io/example/unah-red-tutores-api:test` and run with those values.
 
 ## Task P5-05 — Optional observability stack
 Commit: `build: add optional observability stack`
@@ -107,14 +107,14 @@ Verify: YAML parses; describe in the report what will happen on the first merge 
 Commit: `chore: add dependabot and remove drone`
 1. `.github/dependabot.yml`: ecosystems `npm` for `/shared`, `/server`, `/client` (weekly, grouped minor and patch), `docker` for `/`, `github-actions` for `/`.
 2. Delete `.drone.yml`.
-3. Add `.github/CODEOWNERS` (placeholder owner `@OWNER` with a clear TODO for `init`), `.github/pull_request_template.md` (summary, checklist: tests, docs, migration notes, breaking changes).
+3. Add `.github/CODEOWNERS` (placeholder owner `@Asterki` with a clear TODO for `init`), `.github/pull_request_template.md` (summary, checklist: tests, docs, migration notes, breaking changes).
 4. In `ci.yml`, add a `docker` job that builds the image (no push) on pull requests and runs Trivy on it.
 Verify: all YAML parses; no Drone references remain (`rg -n -i drone .`).
 
 ## Phase gate
 ```bash
 npm run lint && npm run typecheck && npm run test && npm run build
-docker build -t template-api:test .
+docker build -t unah-red-tutores-api:test .
 for f in dev prod ghcr; do docker compose -f compose.$f.yaml config > /dev/null; done
 docker compose -f compose.dev.yaml -f compose.observability.yaml config > /dev/null
 ```

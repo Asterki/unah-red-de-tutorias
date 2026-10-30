@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { App } from "antd";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import type { Permission } from "@template/shared";
+import type { Permission } from "@unah-red-tutores/shared";
 
 import type { RootState } from "../store";
 import { can } from "./can";

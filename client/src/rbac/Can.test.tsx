@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { describe, expect, it } from "vitest";
-import type { SessionAccountDto } from "@template/shared";
+import type { SessionAccountDto } from "@unah-red-tutores/shared";
 
 import authSlice, { setAccount } from "../features/auth/slice";
 import { Can } from "./Can";

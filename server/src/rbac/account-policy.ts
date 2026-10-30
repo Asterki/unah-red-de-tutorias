@@ -2,7 +2,7 @@ import type { AccountStatus, Role } from "@prisma/client";
 
 import type { TransactionClient } from "../db/tx.js";
 import { ConflictError, ForbiddenError } from "../http/errors.js";
-import { canAssignRole, canManage } from "@template/shared";
+import { canAssignRole, canManage } from "@unah-red-tutores/shared";
 
 export type AdminChange = {
   role?: Role;

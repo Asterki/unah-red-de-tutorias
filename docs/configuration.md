@@ -31,7 +31,7 @@ point to another file; otherwise `server/.env` is loaded when it exists.
 | `CLIENT_DIR` | no | `client-dist` | Directory containing the built SPA when `SERVE_CLIENT=true`. |
 | `LOG_LEVEL` | no | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `silent`. |
 | `LOG_FORMAT` | no | `json` in production, `pretty` otherwise | `json` or `pretty`. |
-| `SERVICE_NAME` | no | `template-api` | Value of the `service` field in every log line. |
+| `SERVICE_NAME` | no | `unah-red-tutores-api` | Value of the `service` field in every log line. |
 | `OTEL_ENABLED` | no | `false` | Enable the optional OpenTelemetry SDK. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | when tracing | none | OTLP HTTP endpoint (a valid URL). |
 | `OTEL_SERVICE_NAME` | no | `SERVICE_NAME` | Service name reported to the trace backend. |

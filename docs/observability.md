@@ -64,7 +64,7 @@ for compatibility with the plan and tooling).
 The application emits pino JSON with these relevant fields:
 
 ```json
-{"level":30,"time":"...","service":"template-api","req":{"id":"..."},"msg":"GET /healthz completed"}
+{"level":30,"time":"...","service":"unah-red-tutores-api","req":{"id":"..."},"msg":"GET /healthz completed"}
 ```
 
 Alloy:
@@ -83,7 +83,7 @@ warn, `50` error, `60` fatal. Use those values in LogQL.
 Errors and warnings for the API in the last 15 minutes:
 
 ```logql
-{service="template-api"} | level=~"40|50|60"
+{service="unah-red-tutores-api"} | level=~"40|50|60"
 ```
 
 Count warnings/errors per service over time:
@@ -97,13 +97,13 @@ sum by (service) (
 Follow one request by its `req.id` (stored as `req_id` structured metadata):
 
 ```logql
-{service="template-api"} | req_id="26feeb99-544a-47bb-b792-2a7f2f9acbd8"
+{service="unah-red-tutores-api"} | req_id="26feeb99-544a-47bb-b792-2a7f2f9acbd8"
 ```
 
 If a backend does not preserve structured metadata, parse the JSON line instead:
 
 ```logql
-{service="template-api"} | json | req_id="26feeb99-544a-47bb-b792-2a7f2f9acbd8"
+{service="unah-red-tutores-api"} | json | req_id="26feeb99-544a-47bb-b792-2a7f2f9acbd8"
 ```
 
 ## pino-loki as an opt-in alternative
@@ -124,7 +124,7 @@ Tracing is optional and off by default. Enable it with:
 ```bash
 OTEL_ENABLED=true
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
-OTEL_SERVICE_NAME=template-api
+OTEL_SERVICE_NAME=unah-red-tutores-api
 ```
 
 Standard `OTEL_*` variables are read by the SDK. The pino instrumentation adds

@@ -1,4 +1,4 @@
-import { accountApi } from "@template/shared";
+import { accountApi } from "@unah-red-tutores/shared";
 
 import { api } from "../../utils/api";
 

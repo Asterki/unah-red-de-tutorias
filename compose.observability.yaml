@@ -38,6 +38,7 @@ services:
       - ./deploy/observability/alloy.river:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - alloy-data:/var/lib/alloy/data
+      - ./.logs:/var/log/local-api:ro
     ports:
       - "127.0.0.1:12345:12345"
 

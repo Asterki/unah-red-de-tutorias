@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SessionAccountDto } from "@template/shared";
+import type { SessionAccountDto } from "@unah-red-tutores/shared";
 
 import { authRedirect, CHANGE_PASSWORD_PATH } from "./guards";
 

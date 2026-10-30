@@ -19,7 +19,7 @@ import type {
   ItemStatus,
   ListItemsQuery,
   PageMeta,
-} from "@template/shared";
+} from "@unah-red-tutores/shared";
 
 import { Can } from "../../../rbac";
 import { translateApiError } from "../../../i18n/errors";

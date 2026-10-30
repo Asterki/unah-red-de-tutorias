@@ -2,7 +2,7 @@ import {
   roleHasPermission,
   type Permission,
   type Role,
-} from "@template/shared";
+} from "@unah-red-tutores/shared";
 import type { PrismaClient } from "@prisma/client";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

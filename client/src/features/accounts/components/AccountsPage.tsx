@@ -22,7 +22,7 @@ import {
   updateAccountSchema,
   type AccountDto,
   type Role,
-} from "@template/shared";
+} from "@unah-red-tutores/shared";
 
 import AdminPageLayout from "../../../layouts/Admin";
 import { RequirePermission, useCan } from "../../../rbac";

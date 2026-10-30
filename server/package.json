@@ -1,13 +1,13 @@
 {
-  "name": "@template/server",
+  "name": "@unah-red-tutores/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "license": "MIT",
-  "author": "Fernando David Rivera Ulloa",
+  "author": "Asterki",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Asterki/template-crud-mariadb-rbac.git"
+    "url": "https://github.com/Asterki/template-crud-mariadb-rbac"
   },
   "homepage": "https://github.com/Asterki/template-crud-mariadb-rbac#readme",
   "bugs": {
@@ -41,7 +41,7 @@
     "@prisma/adapter-mariadb": "7.10.1",
     "@prisma/client": "7.10.1",
     "@quixo3/prisma-session-store": "^3.1.19",
-    "@template/shared": "file:../shared",
+    "@unah-red-tutores/shared": "file:../shared",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

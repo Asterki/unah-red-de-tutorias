@@ -1,0 +1,11 @@
+{
+  "name": "Red de Tutores UNAH",
+  "slug": "unah-red-tutores",
+  "title": "Red de Tutores UNAH",
+  "image": "unah-red-tutores-api",
+  "owner": "Asterki",
+  "repo": "https://github.com/Asterki/template-crud-mariadb-rbac",
+  "locale": "en",
+  "brand": "#1677ff",
+  "initializedAt": "2026-10-30T14:33:30.188Z"
+}

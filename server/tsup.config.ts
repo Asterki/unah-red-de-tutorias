@@ -11,5 +11,5 @@ export default defineConfig({
   outDir: "dist",
   clean: true,
   sourcemap: true,
-  noExternal: ["@template/shared"],
+  noExternal: ["@unah-red-tutores/shared"],
 });

@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { App as AntApp } from "antd";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ItemDto, Role, SessionAccountDto } from "@template/shared";
+import type { ItemDto, Role, SessionAccountDto } from "@unah-red-tutores/shared";
 
 import "../../i18n";
 import authSlice, { setAccount } from "../auth/slice";

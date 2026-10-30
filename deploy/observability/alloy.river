@@ -29,6 +29,17 @@ loki.source.docker "containers" {
 	forward_to    = [loki.process.app.receiver]
 }
 
+loki.source.file "development_api" {
+  targets = [
+    {
+      __path__ = "/var/log/local-api/api.ndjson",
+      job      = "local-api",
+    },
+  ]
+
+  forward_to = [loki.process.app.receiver]
+}
+
 loki.process "app" {
 	// Pino writes one JSON object per line. Missing fields on non-JSON
 	// containers (MariaDB, Loki itself) are simply not extracted.

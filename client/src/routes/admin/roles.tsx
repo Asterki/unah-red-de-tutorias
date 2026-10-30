@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { App, Space, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useTranslation } from "react-i18next";
-import type { RolePermissionsEntry } from "@template/shared";
+import type { RolePermissionsEntry } from "@unah-red-tutores/shared";
 
 import AdminPageLayout from "../../layouts/Admin";
 import { RequirePermission } from "../../rbac";

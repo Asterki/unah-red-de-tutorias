@@ -1,5 +1,5 @@
 import { theme, type ThemeConfig } from "antd";
-import type { AppBranding } from "@template/shared";
+import type { AppBranding } from "@unah-red-tutores/shared";
 
 export type ThemeMode = "light" | "dark";
 

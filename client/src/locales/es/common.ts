@@ -39,7 +39,7 @@ const common = {
   },
   footer: {
     madeBy: "Hecho por",
-    author: "Fernando Rivera",
+    author: "Asterki",
   },
 };
 

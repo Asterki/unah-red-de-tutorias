@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { App } from "antd";
 import { useTranslation } from "react-i18next";
-import type { ItemDto } from "@template/shared";
+import type { ItemDto } from "@unah-red-tutores/shared";
 
 import { normalizeApiError } from "../../../utils/api";
 import { translateApiError } from "../../../i18n/errors";

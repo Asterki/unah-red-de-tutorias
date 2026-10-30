@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import type { Permission } from "@template/shared";
+import type { Permission } from "@unah-red-tutores/shared";
 
 import type { RootState } from "../store";
 import { can, canManage } from "./can";

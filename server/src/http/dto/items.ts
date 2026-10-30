@@ -1,4 +1,4 @@
-import type { ItemDto } from "@template/shared";
+import type { ItemDto } from "@unah-red-tutores/shared";
 
 type ItemRecord = {
   id: string;

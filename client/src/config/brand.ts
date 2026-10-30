@@ -4,7 +4,7 @@ import {
   BRAND_COLOR,
   DEFAULT_LOCALE,
   type AppBranding,
-} from "@template/shared";
+} from "@unah-red-tutores/shared";
 
 import logoUrl from "../assets/logo.svg";
 

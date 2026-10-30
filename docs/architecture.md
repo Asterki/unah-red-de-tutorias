@@ -9,7 +9,7 @@ workspace and the root `package.json` has scripts only (zero dependencies).
 | `server/` | Express API, Prisma access, sessions, RBAC enforcement, migration and seed CLIs. | `server/dist` (bundled with shared inlined) |
 | `client/` | React SPA. Talks to `/api` through one axios instance with CSRF support. | `client/dist` (static assets) |
 
-`server` and `client` depend on `@template/shared` through `file:../shared`.
+`server` and `client` depend on `@unah-red-tutores/shared` through `file:../shared`.
 `server` bundles shared into its output, so the runtime image does not need a
 link to `../shared`. The client lets Vite resolve and bundle the shared package.
 See [ADR 0001](decisions/0001-package-layout.md).

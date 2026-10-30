@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { ROLE_PERMISSIONS, ROLES } from "@template/shared";
+import { ROLE_PERMISSIONS, ROLES } from "@unah-red-tutores/shared";
 
 export const listRoles: RequestHandler = (_req, res) => {
   res.json({

@@ -32,7 +32,7 @@ When a change affects the database or image:
 
 ```bash
 npm --prefix server run db:validate
-docker build -t template-api:test .
+docker build -t unah-red-tutores-api:test .
 for f in dev prod ghcr; do docker compose -f compose.$f.yaml config > /dev/null; done
 ```
 

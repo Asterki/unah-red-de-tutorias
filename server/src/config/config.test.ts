@@ -18,7 +18,7 @@ const validEnv: NodeJS.ProcessEnv = {
   SERVE_CLIENT: "false",
   LOG_LEVEL: "debug",
   LOG_FORMAT: "json",
-  SERVICE_NAME: "template-api-test",
+  SERVICE_NAME: "unah-red-tutores-api-test",
 };
 
 function runInvalid(env: NodeJS.ProcessEnv): {

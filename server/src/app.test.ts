@@ -62,7 +62,7 @@ describe("createApp", () => {
       expect(response.status).toBe(200);
       expect(response.type).toBe("application/json");
       expect(response.body).toEqual({
-        service: "template-api",
+        service: "unah-red-tutores-api",
         version: "0.0.0",
       });
     });

@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { roleHasPermission, type Permission } from "@template/shared";
+import { roleHasPermission, type Permission } from "@unah-red-tutores/shared";
 
 import { ForbiddenError, UnauthorizedError } from "../http/errors.js";
 

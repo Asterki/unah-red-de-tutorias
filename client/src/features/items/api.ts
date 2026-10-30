@@ -1,4 +1,4 @@
-import { itemApi } from "@template/shared";
+import { itemApi } from "@unah-red-tutores/shared";
 
 import { api } from "../../utils/api";
 

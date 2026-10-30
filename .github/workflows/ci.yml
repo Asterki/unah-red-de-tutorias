@@ -128,13 +128,13 @@ jobs:
         with:
           context: .
           load: true
-          tags: template-api:ci
+          tags: unah-red-tutores-api:ci
           cache-from: type=gha
 
       - name: Scan image for fixed HIGH and CRITICAL vulnerabilities
         uses: aquasecurity/trivy-action@0.36.0
         with:
-          image-ref: template-api:ci
+          image-ref: unah-red-tutores-api:ci
           format: table
           exit-code: "1"
           ignore-unfixed: true

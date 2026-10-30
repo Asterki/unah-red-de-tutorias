@@ -1,11 +1,11 @@
 {
-  "name": "random-system",
+  "name": "unah-red-tutores",
   "private": true,
   "license": "MIT",
-  "author": "Fernando David Rivera Ulloa",
+  "author": "Asterki",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Asterki/template-crud-mariadb-rbac.git"
+    "url": "https://github.com/Asterki/template-crud-mariadb-rbac"
   },
   "homepage": "https://github.com/Asterki/template-crud-mariadb-rbac#readme",
   "bugs": {

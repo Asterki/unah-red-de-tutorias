@@ -101,7 +101,7 @@ export const envSchema = z.object({
     .enum(["trace", "debug", "info", "warn", "error", "fatal", "silent"])
     .default("info"),
   LOG_FORMAT: z.enum(["json", "pretty"]).optional(),
-  SERVICE_NAME: z.string().min(1).default("template-api"),
+  SERVICE_NAME: z.string().min(1).default("unah-red-tutores-api"),
   OTEL_ENABLED: optionalBoolean(false),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.preprocess(
     (value) => (value === "" ? undefined : value),

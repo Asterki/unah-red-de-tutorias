@@ -6,7 +6,7 @@ import {
   setAccountPasswordSchema,
   setAccountStatusSchema,
   updateAccountSchema,
-} from "@template/shared";
+} from "@unah-red-tutores/shared";
 
 import { createAccountsController } from "../controllers/accounts.js";
 import {

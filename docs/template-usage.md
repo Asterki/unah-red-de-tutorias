@@ -38,7 +38,7 @@ repository URL, locale and brand colour with `readline`.
 ### What it changes
 
 - package names in `shared/`, `server/` and `client/`, including the
-  `@template/*` imports and the lockfile names;
+  `@unah-red-tutores/*` imports and the lockfile names;
 - compose project names and the MariaDB volume name;
 - the image name in `compose.ghcr.yaml`, `.env.ghcr.example` and the release
   workflow;

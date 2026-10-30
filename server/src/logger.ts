@@ -74,7 +74,7 @@ export function createLogger(
 
 let rootLogger: Logger = pino({
   level: "info",
-  base: { service: "template-api" },
+  base: { service: "unah-red-tutores-api" },
   redact: { paths: [...REDACT_PATHS], censor: "[redacted]" },
 });
 

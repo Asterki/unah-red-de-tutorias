@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Permission } from "@template/shared";
+import type { Permission } from "@unah-red-tutores/shared";
 
 import { useCan } from "./useCan";
 

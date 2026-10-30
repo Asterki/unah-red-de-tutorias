@@ -10,7 +10,7 @@ import authApi from "./api";
 
 export * from "./api";
 export type { AuthState } from "./slice";
-export type { LoginRequest, SessionAccountDto } from "@template/shared";
+export type { LoginRequest, SessionAccountDto } from "@unah-red-tutores/shared";
 
 export default {
   slice,

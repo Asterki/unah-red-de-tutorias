@@ -49,7 +49,7 @@ npm --prefix server exec prisma validate
 npm --prefix server exec prisma migrate deploy && npm --prefix server exec prisma migrate deploy   # second run no-op
 npm --prefix server exec prisma migrate status
 BOOTSTRAP_ADMIN_EMAIL=admin@example.com npm --prefix server run db:seed    # twice; one admin
-docker build -t template-api:final .
+docker build -t unah-red-tutores-api:final .
 for f in dev prod ghcr; do docker compose -f compose.$f.yaml config > /dev/null; done
 docker compose -f compose.dev.yaml -f compose.observability.yaml config > /dev/null
 pip install -r docs/requirements.txt && mkdocs build --strict
