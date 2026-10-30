@@ -36,7 +36,7 @@
     "@unah-red-tutores/shared": "file:../shared",
     "antd": "^5.27.6",
     "axios": "^1.12.2",
-    "i18next": "^25.5.2",
+    "i18next": "^26.5.11",
     "immer": "^10.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
