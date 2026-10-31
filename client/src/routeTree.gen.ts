@@ -13,10 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminChangePasswordRouteImport } from './routes/admin/change-password'
 import { Route as AdminDocsRouteImport } from './routes/admin/docs'
-import { Route as AdminItemsRouteImport } from './routes/admin/items'
 import { Route as AdminRolesRouteImport } from './routes/admin/roles'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthLogoutRouteImport } from './routes/auth/logout'
+import { Route as AuthPasswordRouteImport } from './routes/auth/password'
 import { Route as Errors404RouteImport } from './routes/errors/404'
 import { Route as ErrorsOfflineRouteImport } from './routes/errors/offline'
 import { Route as AdminAccountsIndexRouteImport } from './routes/admin/accounts/index'
@@ -41,11 +41,6 @@ const AdminDocsRoute = AdminDocsRouteImport.update({
   path: '/admin/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminItemsRoute = AdminItemsRouteImport.update({
-  id: '/admin/items',
-  path: '/admin/items',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRolesRoute = AdminRolesRouteImport.update({
   id: '/admin/roles',
   path: '/admin/roles',
@@ -59,6 +54,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const AuthLogoutRoute = AuthLogoutRouteImport.update({
   id: '/auth/logout',
   path: '/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthPasswordRoute = AuthPasswordRouteImport.update({
+  id: '/auth/password',
+  path: '/auth/password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Errors404Route = Errors404RouteImport.update({
@@ -81,10 +81,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin/change-password': typeof AdminChangePasswordRoute
   '/admin/docs': typeof AdminDocsRoute
-  '/admin/items': typeof AdminItemsRoute
   '/admin/roles': typeof AdminRolesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/logout': typeof AuthLogoutRoute
+  '/auth/password': typeof AuthPasswordRoute
   '/errors/404': typeof Errors404Route
   '/errors/offline': typeof ErrorsOfflineRoute
   '/admin/': typeof AdminIndexRoute
@@ -94,10 +94,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/change-password': typeof AdminChangePasswordRoute
   '/admin/docs': typeof AdminDocsRoute
-  '/admin/items': typeof AdminItemsRoute
   '/admin/roles': typeof AdminRolesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/logout': typeof AuthLogoutRoute
+  '/auth/password': typeof AuthPasswordRoute
   '/errors/404': typeof Errors404Route
   '/errors/offline': typeof ErrorsOfflineRoute
   '/admin': typeof AdminIndexRoute
@@ -108,10 +108,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin/change-password': typeof AdminChangePasswordRoute
   '/admin/docs': typeof AdminDocsRoute
-  '/admin/items': typeof AdminItemsRoute
   '/admin/roles': typeof AdminRolesRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/logout': typeof AuthLogoutRoute
+  '/auth/password': typeof AuthPasswordRoute
   '/errors/404': typeof Errors404Route
   '/errors/offline': typeof ErrorsOfflineRoute
   '/admin/': typeof AdminIndexRoute
@@ -123,10 +123,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/change-password'
     | '/admin/docs'
-    | '/admin/items'
     | '/admin/roles'
     | '/auth/login'
     | '/auth/logout'
+    | '/auth/password'
     | '/errors/404'
     | '/errors/offline'
     | '/admin/'
@@ -136,10 +136,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/change-password'
     | '/admin/docs'
-    | '/admin/items'
     | '/admin/roles'
     | '/auth/login'
     | '/auth/logout'
+    | '/auth/password'
     | '/errors/404'
     | '/errors/offline'
     | '/admin'
@@ -149,10 +149,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/change-password'
     | '/admin/docs'
-    | '/admin/items'
     | '/admin/roles'
     | '/auth/login'
     | '/auth/logout'
+    | '/auth/password'
     | '/errors/404'
     | '/errors/offline'
     | '/admin/'
@@ -163,10 +163,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminChangePasswordRoute: typeof AdminChangePasswordRoute
   AdminDocsRoute: typeof AdminDocsRoute
-  AdminItemsRoute: typeof AdminItemsRoute
   AdminRolesRoute: typeof AdminRolesRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthLogoutRoute: typeof AuthLogoutRoute
+  AuthPasswordRoute: typeof AuthPasswordRoute
   Errors404Route: typeof Errors404Route
   ErrorsOfflineRoute: typeof ErrorsOfflineRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -203,13 +203,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/items': {
-      id: '/admin/items'
-      path: '/admin/items'
-      fullPath: '/admin/items'
-      preLoaderRoute: typeof AdminItemsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/roles': {
       id: '/admin/roles'
       path: '/admin/roles'
@@ -229,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/logout'
       fullPath: '/auth/logout'
       preLoaderRoute: typeof AuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/password': {
+      id: '/auth/password'
+      path: '/auth/password'
+      fullPath: '/auth/password'
+      preLoaderRoute: typeof AuthPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/errors/404': {
@@ -259,10 +259,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminChangePasswordRoute: AdminChangePasswordRoute,
   AdminDocsRoute: AdminDocsRoute,
-  AdminItemsRoute: AdminItemsRoute,
   AdminRolesRoute: AdminRolesRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthLogoutRoute: AuthLogoutRoute,
+  AuthPasswordRoute: AuthPasswordRoute,
   Errors404Route: Errors404Route,
   ErrorsOfflineRoute: ErrorsOfflineRoute,
   AdminIndexRoute: AdminIndexRoute,

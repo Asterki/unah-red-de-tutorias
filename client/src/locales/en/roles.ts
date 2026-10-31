@@ -7,10 +7,13 @@ const roles = {
     permissions: "Permissions",
   },
   names: {
-    admin: "Administrator",
-    manager: "Manager",
-    staff: "Staff",
-    viewer: "Viewer",
+    tech_admin: "Technology Administrator",
+    general_admin: "General Administrator",
+    campus_admin: "Campus Administrator",
+    tutor: "Tutor",
+    student: "Student",
+    external: "Applicant",
+    observer: "Observer",
   },
   permissions: {
     accounts: {
@@ -21,13 +24,6 @@ const roles = {
       "change-password": "Change passwords",
       delete: "Delete accounts",
       restore: "Restore accounts",
-    },
-    items: {
-      read: "Read items",
-      create: "Create items",
-      update: "Update items",
-      delete: "Delete items",
-      restore: "Restore items",
     },
     roles: {
       read: "Read roles",

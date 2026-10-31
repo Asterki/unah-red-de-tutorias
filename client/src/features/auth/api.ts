@@ -3,6 +3,10 @@ import { authApi as authContracts } from "@unah-red-tutores/shared";
 import { api, resetCsrfToken } from "../../utils/api";
 
 export const authApi = {
+  async providers() {
+    return api.get<authContracts.AuthProvidersResponse>("/auth/providers");
+  },
+
   async login(body: authContracts.LoginRequest) {
     return api.post<authContracts.LoginResponse>("/auth/login", body);
   },

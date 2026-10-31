@@ -18,10 +18,13 @@ export const Route = createFileRoute("/admin/roles")({
 });
 
 const ROLE_COLORS: Record<string, string> = {
-  admin: "red",
-  manager: "gold",
-  staff: "blue",
-  viewer: "default",
+  tech_admin: "red",
+  general_admin: "volcano",
+  campus_admin: "gold",
+  tutor: "blue",
+  student: "cyan",
+  external: "purple",
+  observer: "default",
 };
 
 function RouteComponent() {

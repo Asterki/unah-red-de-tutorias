@@ -15,7 +15,6 @@ const { Title } = Typography;
 import {
   FaBars,
   FaBook,
-  FaBoxes,
   FaCompressArrowsAlt,
   FaKey,
   FaRegArrowAltCircleLeft,
@@ -30,7 +29,7 @@ import { brand } from "../config/brand";
 import AuthFeature from "../features/auth";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { ThemeModeToggle } from "../components/ThemeModeToggle";
-import { Can, useCan } from "../rbac";
+import { useCan } from "../rbac";
 import { docsNavVisible } from "../features/docs/nav";
 import { useThemeMode } from "../theme";
 import { authRedirect } from "../rbac/guards";
@@ -97,18 +96,6 @@ export default function PageLayout({
         key: "accounts",
         label: <Link to="/admin/accounts">{t("nav.accounts")}</Link>,
         icon: <FaUsers />,
-      });
-    }
-
-    if (can("items:read")) {
-      items.push({
-        key: "items",
-        label: (
-          <Can permission="items:read">
-            <Link to="/admin/items">{t("nav.items")}</Link>
-          </Can>
-        ),
-        icon: <FaBoxes />,
       });
     }
 

@@ -7,7 +7,7 @@ const account: SessionAccountDto = {
   id: "1",
   email: "user@example.test",
   name: "User",
-  role: "staff",
+  role: "student",
   permissions: ["accounts:read"],
   status: "active",
   mustChangePassword: false,

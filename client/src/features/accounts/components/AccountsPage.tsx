@@ -16,11 +16,13 @@ import { FaPlus } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import {
+  ID_TYPES,
   ROLES,
   createAccountSchema,
   setAccountPasswordSchema,
   updateAccountSchema,
   type AccountDto,
+  type IdType,
   type Role,
 } from "@unah-red-tutores/shared";
 
@@ -37,10 +39,13 @@ import type { RootState } from "../../../store";
 const { Title, Text } = Typography;
 
 const ROLE_COLORS: Record<Role, string> = {
-  admin: "red",
-  manager: "gold",
-  staff: "blue",
-  viewer: "default",
+  tech_admin: "red",
+  general_admin: "volcano",
+  campus_admin: "gold",
+  tutor: "blue",
+  student: "cyan",
+  external: "purple",
+  observer: "default",
 };
 
 type CreateState = {
@@ -48,6 +53,8 @@ type CreateState = {
   loading: boolean;
   name: string;
   email: string;
+  idType: IdType;
+  identifier: string;
   password: string;
   role: Role;
 };
@@ -58,6 +65,8 @@ type EditState = {
   id: string;
   name: string;
   email: string;
+  idType: IdType;
+  identifier: string;
   role: Role;
 };
 
@@ -73,8 +82,10 @@ const emptyCreate: CreateState = {
   loading: false,
   name: "",
   email: "",
+  idType: "account_number",
+  identifier: "",
   password: "",
-  role: "staff",
+  role: "student",
 };
 
 const emptyEdit: EditState = {
@@ -83,7 +94,9 @@ const emptyEdit: EditState = {
   id: "",
   name: "",
   email: "",
-  role: "staff",
+  idType: "account_number",
+  identifier: "",
+  role: "student",
 };
 
 const emptyPassword: PasswordState = {
@@ -176,6 +189,8 @@ export default function AccountsPage() {
     const parsed = updateAccountSchema.safeParse({
       name: editState.name,
       email: editState.email,
+      idType: editState.idType,
+      identifier: editState.identifier,
       role: editState.role,
     });
     if (!parsed.success) {
@@ -336,6 +351,8 @@ export default function AccountsPage() {
                   id: row.id,
                   name: row.name,
                   email: row.email,
+                  idType: row.idType,
+                  identifier: row.identifier,
                   role: row.role,
                 });
               }}
@@ -412,7 +429,7 @@ export default function AccountsPage() {
             icon={<FaPlus />}
             disabled={!can("accounts:create")}
             onClick={() =>
-              setCreateState({ ...emptyCreate, open: true, role: "staff" })
+              setCreateState({ ...emptyCreate, open: true })
             }
           >
             {t("createAccount")}
@@ -483,6 +500,26 @@ export default function AccountsPage() {
                 }))
               }
             />
+            <Select<IdType>
+              value={createState.idType}
+              options={ID_TYPES.map((idType) => ({
+                value: idType,
+                label: t(`idTypes.${idType}`),
+              }))}
+              onChange={(idType) =>
+                setCreateState((prev) => ({ ...prev, idType }))
+              }
+            />
+            <Input
+              placeholder={t("fields.identifier")}
+              value={createState.identifier}
+              onChange={(event) =>
+                setCreateState((prev) => ({
+                  ...prev,
+                  identifier: event.target.value,
+                }))
+              }
+            />
             <Input.Password
               placeholder={t("fields.password")}
               value={createState.password}
@@ -531,6 +568,26 @@ export default function AccountsPage() {
                 setEditState((prev) => ({
                   ...prev,
                   email: event.target.value,
+                }))
+              }
+            />
+            <Select<IdType>
+              value={editState.idType}
+              options={ID_TYPES.map((idType) => ({
+                value: idType,
+                label: t(`idTypes.${idType}`),
+              }))}
+              onChange={(idType) =>
+                setEditState((prev) => ({ ...prev, idType }))
+              }
+            />
+            <Input
+              placeholder={t("fields.identifier")}
+              value={editState.identifier}
+              onChange={(event) =>
+                setEditState((prev) => ({
+                  ...prev,
+                  identifier: event.target.value,
                 }))
               }
             />
