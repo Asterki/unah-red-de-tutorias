@@ -6,11 +6,6 @@ export const PERMISSIONS = [
   "accounts:change-password",
   "accounts:delete",
   "accounts:restore",
-  "items:read",
-  "items:create",
-  "items:update",
-  "items:delete",
-  "items:restore",
   "roles:read",
   "docs:read",
 ] as const;
