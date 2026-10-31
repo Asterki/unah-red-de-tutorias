@@ -7,11 +7,11 @@
   "author": "Asterki",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Asterki/template-crud-mariadb-rbac"
+    "url": "https://github.com/Asterki/unah-red-de-tutorias"
   },
-  "homepage": "https://github.com/Asterki/template-crud-mariadb-rbac#readme",
+  "homepage": "https://github.com/Asterki/unah-red-de-tutorias#readme",
   "bugs": {
-    "url": "https://github.com/Asterki/template-crud-mariadb-rbac/issues"
+    "url": "https://github.com/Asterki/unah-red-de-tutorias/issues"
   },
   "engines": {
     "node": ">=24 <25",
