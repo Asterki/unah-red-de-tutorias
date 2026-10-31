@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Headless production image. The build context is the repository root.
-FROM node:24-alpine AS base
+FROM node:25-alpine AS base
 RUN apk add --no-cache tini
 WORKDIR /app
 
