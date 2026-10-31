@@ -27,5 +27,6 @@
     "legacy:import": "server/node_modules/.bin/tsx scripts/legacy/import-legacy-data.ts",
     "init": "node scripts/init.mjs",
     "doctor": "node scripts/doctor.mjs"
-  }
+  },
+  "version": "1.0.0"
 }
