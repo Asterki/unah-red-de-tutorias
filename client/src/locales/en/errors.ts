@@ -35,11 +35,25 @@ const errors = {
     cannotManageAccount: "You cannot manage an account with this role.",
     roleCannotBeAssigned: "You cannot assign a role equal to or above your own.",
     invalidCurrentPassword: "The current password is incorrect.",
-    itemNotFound: "The item was not found.",
     invalidOrigin: "The request origin is not allowed.",
     invalidOriginSecret: "The request origin is not allowed.",
     invalidCsrfToken: "The security token is invalid. Reload the page.",
     invalidCredentials: "Invalid credentials.",
+    domainNotAllowed:
+      "Only @unah.hn and @unah.edu.hn Microsoft accounts can sign in this way.",
+    tenantNotAllowed:
+      "Your Microsoft organization is not authorized to use this platform.",
+    useMicrosoftLogin:
+      "Institutional accounts must sign in with Microsoft under \"Employee or Student\".",
+    accountLocked: "This account is locked. Contact an administrator.",
+    accountBanned: "This account is banned. Contact an administrator.",
+    accountInactive: "This account is inactive. Contact an administrator.",
+    emailNotVerified:
+      "Your provider has not verified this email address, so we cannot sign you in.",
+    providerError:
+      "The identity provider could not complete the sign-in. Please try again.",
+    invalidState:
+      "The sign-in attempt expired or was invalid. Please start again.",
   },
 };
 

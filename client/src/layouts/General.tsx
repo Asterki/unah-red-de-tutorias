@@ -33,7 +33,7 @@ export default function GeneralLayout({ children }: LayoutProps) {
 
       <Footer className="text-center border-t border-gray-200 dark:border-gray-700 bg-transparent">
         {t("footer.madeBy")}{" "}
-        <a href="https://github.com/Asterki/template-crud-mariadb-rbac" target="_blank" className="underline">
+        <a href="https://github.com/Asterki/unah-red-de-tutorias" target="_blank" className="underline">
           {t("footer.author")}
         </a>{" "}
         | {new Date().getFullYear()}

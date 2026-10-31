@@ -33,6 +33,9 @@ nav:
   - Configuration: configuration.md
   - Database: database.md
   - Roles and permissions: rbac.md
+  - Authentication:
+      - Federated login: auth/federated-login.md
+      - Provider setup: auth/provider-setup.md
   - API: api.md
   - Deployment: deployment.md
   - Observability: observability.md
@@ -45,6 +48,7 @@ nav:
       - Overview: in-app/index.md
       - Database switching: in-app/database.md
       - Roles: in-app/rbac.md
+      - Federated login: in-app/federated-login.md
       - Deployment: in-app/deployment.md
   - Decisions:
       - Package layout: decisions/0001-package-layout.md

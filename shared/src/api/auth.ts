@@ -1,3 +1,4 @@
+import type { FederatedProvider } from "../domain/federated-email.js";
 import type { SessionAccountDto } from "../dto/accounts.js";
 import type { DataResponse } from "../dto/pagination.js";
 import type { ChangePasswordRequest, LoginRequest } from "../schemas/auth.js";
@@ -13,4 +14,9 @@ export type CsrfResponse = {
 
 export type LogoutResponse = {
   data: { success: true };
+};
+
+/** Providers enabled by server configuration. */
+export type AuthProvidersResponse = {
+  data: { providers: FederatedProvider[] };
 };

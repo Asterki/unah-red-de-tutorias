@@ -1,11 +1,14 @@
 # Red de Tutores UNAH
 
-A reusable single-tenant admin template: a headless Express API, a React SPA
-and a Prisma-free shared contract package, wired for MariaDB, session auth and
-default-deny RBAC.
+Tutoring management platform for UNAH: a headless Express API, a React SPA and a
+Prisma-free shared contract package, wired for MariaDB, session auth,
+default-deny RBAC and federated login.
 
 - **API:** Node 24, Express 5, Prisma 7 + `@prisma/adapter-mariadb`, pino,
   sessions in MariaDB, Prisma Migrate and a one-time seed.
+- **Auth:** email + password, plus Microsoft (employees and students), Google
+  and Apple (applicants) through Passport. See
+  [`docs/auth/federated-login.md`](docs/auth/federated-login.md).
 - **SPA:** React 19, Vite 7, Ant Design 5, TanStack Router, i18next (`en`
   default, `es` included), light/dark theme.
 - **Deploy:** static SPA on Vercel proxying `/api` to a headless Docker image;

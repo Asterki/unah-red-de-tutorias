@@ -114,7 +114,7 @@ describe("createApp", () => {
       expect(root.status).toBe(200);
       expect(root.text).toContain("spa-index");
 
-      const deepLink = await request(app).get("/admin/items");
+      const deepLink = await request(app).get("/admin/accounts");
       expect(deepLink.status).toBe(200);
       expect(deepLink.text).toContain("spa-index");
     });

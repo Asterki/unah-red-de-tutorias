@@ -48,13 +48,13 @@ describeDb("seed CLI", () => {
     expect(await db.account.count()).toBe(1);
 
     const admin = await db.account.findFirstOrThrow({
-      include: { metadata: true },
+      include: { metadata: true, roles: true },
     });
-    expect(admin.role).toBe("admin");
+    expect(admin.roles.map((entry) => entry.role)).toEqual(["tech_admin"]);
     expect(admin.mustChangePassword).toBe(true);
     expect(admin.status).toBe("active");
     expect(
-      await bcrypt.compare(config().bootstrapAdminPassword!, admin.password),
+      await bcrypt.compare(config().bootstrapAdminPassword!, admin.password!),
     ).toBe(true);
     expect(output).toHaveLength(0);
   });
@@ -87,7 +87,7 @@ describeDb("seed CLI", () => {
     const admin = await db.account.findFirstOrThrow();
     expect(admin.password).not.toBe(first.generatedPassword);
     expect(JSON.stringify(admin)).not.toContain(first.generatedPassword!);
-    expect(await bcrypt.compare(first.generatedPassword!, admin.password)).toBe(
+    expect(await bcrypt.compare(first.generatedPassword!, admin.password!)).toBe(
       true,
     );
   });

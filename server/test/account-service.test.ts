@@ -16,7 +16,9 @@ import {
 
 const describeDb = hasTestDatabase ? describe : describe.skip;
 const db = (hasTestDatabase ? createTestPrisma() : null) as PrismaClient;
-const service = createAccountService(db);
+const service = createAccountService(db, {
+  softDeleteHashKey: "test-soft-delete-hash-key",
+});
 
 async function historyFor(accountId: string) {
   const account = await db.account.findUnique({
@@ -42,55 +44,55 @@ describeDb("account service", () => {
     await db.$disconnect();
   });
 
-  it("manager cannot manage another manager or an admin", async () => {
-    const actor = await seedAccount(db, { role: "manager" });
-    const peer = await seedAccount(db, { role: "manager" });
-    const admin = await seedAccount(db, { role: "admin" });
-    const staff = await seedAccount(db, { role: "staff" });
-    const managerActor = { id: actor.id, role: "manager" as const };
+  it("a general admin cannot manage another general admin or a tech admin", async () => {
+    const actor = await seedAccount(db, { role: "general_admin" });
+    const peer = await seedAccount(db, { role: "general_admin" });
+    const tech = await seedAccount(db, { role: "tech_admin" });
+    const tutor = await seedAccount(db, { role: "tutor" });
+    const generalActor = { id: actor.id, role: "general_admin" as const };
 
     await expect(
-      service.update(peer.id, { name: "Nope" }, managerActor),
+      service.update(peer.id, { name: "Nope" }, generalActor),
     ).rejects.toMatchObject({ status: 403 });
 
     await expect(
-      service.update(admin.id, { name: "Nope" }, managerActor),
+      service.update(tech.id, { name: "Nope" }, generalActor),
     ).rejects.toMatchObject({ status: 403 });
 
     const updated = await service.update(
-      staff.id,
+      tutor.id,
       { name: "Managed" },
-      managerActor,
+      generalActor,
     );
     expect(updated.name).toBe("Managed");
   });
 
   it("rejects self-deletion", async () => {
-    const admin = await seedAccount(db, { role: "admin" });
+    const admin = await seedAccount(db, { role: "tech_admin" });
 
     await expect(
-      service.softDelete(admin.id, { id: admin.id, role: "admin" }),
+      service.softDelete(admin.id, { id: admin.id, role: "tech_admin" }),
     ).rejects.toMatchObject({ status: 409, message: "cannot-manage-self" });
   });
 
-  it("an admin cannot manage another admin", async () => {
-    const actor = await seedAccount(db, { role: "admin" });
-    const other = await seedAccount(db, { role: "admin" });
-    const adminActor = { id: actor.id, role: "admin" as const };
+  it("a tech admin cannot manage another tech admin", async () => {
+    const actor = await seedAccount(db, { role: "tech_admin" });
+    const other = await seedAccount(db, { role: "tech_admin" });
+    const adminActor = { id: actor.id, role: "tech_admin" as const };
 
     await expect(
       service.softDelete(other.id, adminActor),
     ).rejects.toMatchObject({ status: 403 });
     await expect(
-      service.update(other.id, { role: "staff" }, adminActor),
+      service.update(other.id, { role: "tutor" }, adminActor),
     ).rejects.toMatchObject({ status: 403 });
     await expect(
       service.setStatus(other.id, "inactive", adminActor),
     ).rejects.toMatchObject({ status: 403 });
   });
 
-  it("refuses to delete, demote or deactivate the last admin", async () => {
-    const admin = await seedAccount(db, { role: "admin" });
+  it("refuses to delete, demote or deactivate the last tech admin", async () => {
+    const admin = await seedAccount(db, { role: "tech_admin" });
 
     await expect(
       runInTransaction(db, (tx) =>
@@ -100,7 +102,7 @@ describeDb("account service", () => {
 
     await expect(
       runInTransaction(db, (tx) =>
-        assertNotLastAdmin(tx, admin.id, { role: "staff" }),
+        assertNotLastAdmin(tx, admin.id, { role: "tutor" }),
       ),
     ).rejects.toMatchObject({ status: 409, message: "last-admin" });
 
@@ -111,9 +113,9 @@ describeDb("account service", () => {
     ).rejects.toMatchObject({ status: 409, message: "last-admin" });
   });
 
-  it("allows removing an admin while another active admin remains", async () => {
-    const first = await seedAccount(db, { role: "admin" });
-    const second = await seedAccount(db, { role: "admin" });
+  it("allows removing a tech admin while another active tech admin remains", async () => {
+    const first = await seedAccount(db, { role: "tech_admin" });
+    const second = await seedAccount(db, { role: "tech_admin" });
 
     await expect(
       runInTransaction(db, (tx) =>
@@ -131,16 +133,18 @@ describeDb("account service", () => {
   });
 
   it("writes an audit row for every mutation without storing secrets", async () => {
-    const admin = await seedAccount(db, { role: "admin" });
-    const actor = { id: admin.id, role: "admin" as const };
+    const admin = await seedAccount(db, { role: "tech_admin" });
+    const actor = { id: admin.id, role: "tech_admin" as const };
     const createdPassword = "CreatedPassword123!";
 
     const created = await service.create(
       {
         email: testEmail("audit"),
         name: "Audit Target",
+        idType: "employee_id",
+        identifier: "EMP-9001",
         password: createdPassword,
-        role: "manager",
+        role: "campus_admin",
       },
       actor,
     );
@@ -171,13 +175,61 @@ describeDb("account service", () => {
     expect(serialized).not.toMatch(/\$2[aby]\$/);
   });
 
+  it("hashes unique keys on soft delete so they can be reused", async () => {
+    const admin = await seedAccount(db, { role: "tech_admin" });
+    const email = testEmail("reusable");
+    const actor = { id: admin.id, role: "tech_admin" as const };
+
+    const created = await service.create(
+      {
+        email,
+        name: "First",
+        idType: "passport",
+        identifier: "P-100",
+        password: "FirstPassword123!",
+        role: "external",
+      },
+      actor,
+    );
+
+    await service.softDelete(created.id, actor);
+    const deleted = await db.account.findUniqueOrThrow({
+      where: { id: created.id },
+    });
+    expect(deleted.deletedAt).not.toBeNull();
+    expect(deleted.deletedBy).toBe(admin.id);
+    expect(deleted.email).toMatch(/^del:[a-f0-9]{64}$/);
+    expect(deleted.email).not.toContain(email);
+    expect(deleted.identifier).toMatch(/^del:[a-f0-9]{64}$/);
+
+    const reused = await service.create(
+      {
+        email,
+        name: "Second",
+        idType: "passport",
+        identifier: "P-100",
+        password: "SecondPassword123!",
+        role: "external",
+      },
+      actor,
+    );
+    expect(reused.email).toBe(email);
+  });
+
   it("maps duplicate emails to a conflict", async () => {
-    const admin = await seedAccount(db, { role: "admin" });
+    const admin = await seedAccount(db, { role: "tech_admin" });
     const email = testEmail("duplicate");
-    const actor = { id: admin.id, role: "admin" as const };
+    const actor = { id: admin.id, role: "tech_admin" as const };
 
     await service.create(
-      { email, name: "First", password: "FirstPassword123!", role: "staff" },
+      {
+        email,
+        name: "First",
+        idType: "account_number",
+        identifier: "A-1",
+        password: "FirstPassword123!",
+        role: "tutor",
+      },
       actor,
     );
 
@@ -186,8 +238,10 @@ describeDb("account service", () => {
         {
           email,
           name: "Second",
+          idType: "account_number",
+          identifier: "A-2",
           password: "SecondPassword123!",
-          role: "staff",
+          role: "tutor",
         },
         actor,
       ),
@@ -195,14 +249,14 @@ describeDb("account service", () => {
   });
 
   it("lists accounts with 1-based pagination metadata", async () => {
-    await seedAccount(db, { role: "staff", name: "A" });
-    await seedAccount(db, { role: "staff", name: "B" });
-    await seedAccount(db, { role: "staff", name: "C" });
+    await seedAccount(db, { role: "tutor", name: "A" });
+    await seedAccount(db, { role: "tutor", name: "B" });
+    await seedAccount(db, { role: "tutor", name: "C" });
 
     const first = await service.list({ page: 1, pageSize: 2 });
     expect(first.data).toHaveLength(2);
     expect(first.meta).toEqual({ page: 1, pageSize: 2, total: 3 });
-    expect(first.data[0]?.password).toBeUndefined();
+    expect((first.data[0] as unknown as { password?: string }).password).toBeUndefined();
 
     const second = await service.list({ page: 2, pageSize: 2 });
     expect(second.data).toHaveLength(1);

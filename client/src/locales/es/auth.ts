@@ -1,6 +1,25 @@
 const auth = {
   login: {
     title: "Iniciar Sesión",
+    description: "Elija cómo desea iniciar sesión para continuar.",
+    employeeTitle: "Empleado o Estudiante",
+    employeeDescription:
+      "Use su cuenta institucional de Microsoft para acceder a la plataforma.",
+    applicantTitle: "Soy Aspirante",
+    applicantDescription:
+      "Use su cuenta de Google o Apple para solicitar sesiones de tutoría.",
+    microsoft: "Continuar con Microsoft",
+    google: "Continuar con Google",
+    apple: "Continuar con Apple",
+    noProviders:
+      "Todavía no hay ningún método de inicio de sesión federado configurado.",
+    errorTitle: "No pudimos iniciar su sesión",
+    passwordDivider: "o",
+    passwordTitle: "Iniciar sesión con correo y contraseña",
+    passwordButton: "Usar correo y contraseña",
+  },
+  password: {
+    title: "Iniciar Sesión",
     description: "Ingrese sus credenciales para continuar.",
     fields: {
       email: "Correo Electrónico",
@@ -9,6 +28,7 @@ const auth = {
       passwordPlaceholder: "Ingrese su contraseña",
     },
     submit: "Iniciar Sesión",
+    back: "Volver a todas las opciones de inicio de sesión",
     messages: {
       success: "Inicio de sesión exitoso.",
     },

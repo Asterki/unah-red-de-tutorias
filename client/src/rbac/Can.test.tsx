@@ -17,8 +17,8 @@ const viewer: SessionAccountDto = {
   id: "1",
   email: "viewer@example.test",
   name: "Viewer",
-  role: "viewer",
-  permissions: ["items:read"],
+  role: "observer",
+  permissions: ["docs:read"],
   status: "active",
   mustChangePassword: false,
   lastLogin: null,
@@ -28,7 +28,7 @@ const admin: SessionAccountDto = {
   ...viewer,
   id: "2",
   email: "admin@example.test",
-  role: "admin",
+  role: "tech_admin",
   permissions: ["accounts:create"],
 };
 

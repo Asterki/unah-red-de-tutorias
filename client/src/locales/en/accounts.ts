@@ -6,7 +6,15 @@ const accounts = {
   showDeleted: "Show deleted",
   status: {
     active: "Active",
+    locked: "Locked",
+    banned: "Banned",
     inactive: "Inactive",
+  },
+  idTypes: {
+    account_number: "Account number",
+    employee_id: "Employee ID",
+    national_id: "National ID",
+    passport: "Passport",
   },
   table: {
     name: "Name",
@@ -29,6 +37,8 @@ const accounts = {
   fields: {
     name: "Name",
     email: "Email",
+    idType: "Identifier type",
+    identifier: "Identifier",
     password: "Initial password",
     newPassword: "New password",
   },

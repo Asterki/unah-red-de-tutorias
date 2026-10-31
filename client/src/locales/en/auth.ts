@@ -1,6 +1,24 @@
 const auth = {
   login: {
     title: "Sign in",
+    description: "Choose how you want to sign in to continue.",
+    employeeTitle: "Employee or Student",
+    employeeDescription:
+      "Use your institutional Microsoft account to access the platform.",
+    applicantTitle: "I'm an Applicant",
+    applicantDescription:
+      "Use your Google or Apple account to request tutoring sessions.",
+    microsoft: "Continue with Microsoft",
+    google: "Continue with Google",
+    apple: "Continue with Apple",
+    noProviders: "No federated sign-in method is configured yet.",
+    errorTitle: "We could not sign you in",
+    passwordDivider: "or",
+    passwordTitle: "Sign in with email and password",
+    passwordButton: "Use email and password",
+  },
+  password: {
+    title: "Sign in",
     description: "Enter your credentials to continue.",
     fields: {
       email: "Email",
@@ -9,6 +27,7 @@ const auth = {
       passwordPlaceholder: "Enter your password",
     },
     submit: "Sign in",
+    back: "Back to all sign-in options",
     messages: {
       success: "Signed in successfully.",
     },

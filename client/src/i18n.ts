@@ -5,7 +5,6 @@ import { brand, type SupportedLocale } from "./config/brand";
 import enCommon from "./locales/en/common";
 import enAuth from "./locales/en/auth";
 import enAccounts from "./locales/en/accounts";
-import enItems from "./locales/en/items";
 import enRoles from "./locales/en/roles";
 import enDocs from "./locales/en/docs";
 import enValidation from "./locales/en/validation";
@@ -13,7 +12,6 @@ import enErrors from "./locales/en/errors";
 import esCommon from "./locales/es/common";
 import esAuth from "./locales/es/auth";
 import esAccounts from "./locales/es/accounts";
-import esItems from "./locales/es/items";
 import esRoles from "./locales/es/roles";
 import esDocs from "./locales/es/docs";
 import esValidation from "./locales/es/validation";
@@ -25,7 +23,6 @@ export const NAMESPACES = [
   "common",
   "auth",
   "accounts",
-  "items",
   "roles",
   "docs",
   "validation",
@@ -37,7 +34,6 @@ export const resources = {
     common: enCommon,
     auth: enAuth,
     accounts: enAccounts,
-    items: enItems,
     roles: enRoles,
     docs: enDocs,
     validation: enValidation,
@@ -47,7 +43,6 @@ export const resources = {
     common: esCommon,
     auth: esAuth,
     accounts: esAccounts,
-    items: esItems,
     roles: esRoles,
     docs: esDocs,
     validation: esValidation,

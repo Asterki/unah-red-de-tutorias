@@ -1,12 +1,14 @@
 # Operator documentation
 
-This area is available to accounts with the `docs:read` permission (admin and
-manager). It contains the operational runbooks for this deployment.
+This area is available to accounts with the `docs:read` permission (every role).
+It contains the operational runbooks for this deployment.
 
 - **Switching the database**: DSNs, least-privilege users, migrate/seed,
   backups, rollback and troubleshooting.
 - **Roles and permissions**: the static matrix, `canManage`, the last-admin
   rule and how to request a role change.
+- **Federated login**: Microsoft, Google and Apple sign-in, role assignment and
+  error codes.
 - **Deployment**: Vercel, the headless API, GHCR, health checks and rollback.
 
 The SPA and API versions are expected to match. If a page does not load, check

@@ -2,7 +2,12 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import { PrismaClient, type Role } from "@prisma/client";
+import {
+  PrismaClient,
+  type AccountStatus,
+  type IdType,
+  type Role,
+} from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const serverRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -47,8 +52,9 @@ export async function truncateAll(prisma: PrismaClient): Promise<void> {
   // Child rows first so foreign keys stay valid on every pooled connection.
   for (const table of [
     "MetadataUpdateHistory",
+    "AccountIdentity",
+    "AccountRole",
     "Account",
-    "Item",
     "Metadata",
     "sessions",
   ]) {
@@ -63,6 +69,11 @@ export function testEmail(prefix = "account"): string {
   return `${prefix}-${process.pid}-${sequence}@example.test`;
 }
 
+function testIdentifier(prefix: string): string {
+  sequence += 1;
+  return `${prefix}-${process.pid}-${sequence}`;
+}
+
 export const TEST_PASSWORD = "InitialPassword123!";
 
 export async function seedAccount(
@@ -71,27 +82,35 @@ export async function seedAccount(
     role: Role;
     email?: string;
     name?: string;
-    status?: "active" | "inactive";
+    idType?: IdType;
+    identifier?: string;
+    status?: AccountStatus;
     deleted?: boolean;
-    password?: string;
+    password?: string | null;
     mustChangePassword?: boolean;
   },
 ) {
-  const metadata = await prisma.metadata.create({
-    data: { deleted: input.deleted ?? false },
-  });
-  const password = await bcrypt.hash(input.password ?? TEST_PASSWORD, 4);
+  const metadata = await prisma.metadata.create({ data: {} });
+  const password =
+    input.password === null
+      ? null
+      : await bcrypt.hash(input.password ?? TEST_PASSWORD, 4);
+  const deletedAt = input.deleted ? new Date() : null;
 
   return prisma.account.create({
     data: {
       email: input.email ?? testEmail(input.role),
       name: input.name ?? `${input.role} account`,
+      idType: input.idType ?? "account_number",
+      identifier: input.identifier ?? testIdentifier(input.role),
       password,
-      role: input.role,
       status: input.status ?? "active",
       mustChangePassword: input.mustChangePassword ?? false,
       metadataId: metadata.id,
+      deletedAt,
+      deletedBy: deletedAt ? "seed" : null,
+      roles: { create: { role: input.role } },
     },
-    include: { metadata: true },
+    include: { metadata: true, roles: true },
   });
 }

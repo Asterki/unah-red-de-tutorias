@@ -23,7 +23,6 @@ const common = {
   nav: {
     dashboard: "Dashboard",
     accounts: "Accounts",
-    items: "Items",
     roles: "Roles & Permissions",
     docs: "Documentation",
     changePassword: "Change Password",

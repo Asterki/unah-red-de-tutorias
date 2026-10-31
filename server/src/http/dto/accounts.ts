@@ -1,21 +1,28 @@
 import {
   ROLE_PERMISSIONS,
   type AccountDto,
+  type AccountStatus,
+  type IdType,
+  type Role,
   type SessionAccountDto,
 } from "@unah-red-tutores/shared";
+
+import { primaryRole } from "../../rbac/primary-role.js";
 
 type AccountRecord = {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "manager" | "staff" | "viewer";
-  status: "active" | "inactive";
+  idType: IdType;
+  identifier: string;
+  status: AccountStatus;
   mustChangePassword: boolean;
   lastLogin: Date | null;
+  deletedAt: Date | null;
+  roles: Array<{ role: Role }>;
   metadata: {
     createdAt: Date;
     updatedAt: Date;
-    deleted: boolean;
   } | null;
 };
 
@@ -29,7 +36,9 @@ export function toAccountDto(account: AccountRecord): AccountDto {
     id: account.id,
     email: account.email,
     name: account.name,
-    role: account.role,
+    idType: account.idType,
+    identifier: account.identifier,
+    role: primaryRole(account.roles),
     status: account.status,
     mustChangePassword: account.mustChangePassword,
     lastLogin: iso(account.lastLogin),
@@ -37,7 +46,7 @@ export function toAccountDto(account: AccountRecord): AccountDto {
       account.metadata?.createdAt.toISOString() ?? new Date(0).toISOString(),
     updatedAt:
       account.metadata?.updatedAt.toISOString() ?? new Date(0).toISOString(),
-    deleted: account.metadata?.deleted ?? false,
+    deleted: account.deletedAt !== null,
   };
 }
 
@@ -45,8 +54,8 @@ type SessionAccountRecord = {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "manager" | "staff" | "viewer";
-  status: "active" | "inactive";
+  role: Role;
+  status: AccountStatus;
   mustChangePassword: boolean;
   lastLogin: Date | string | null;
 };

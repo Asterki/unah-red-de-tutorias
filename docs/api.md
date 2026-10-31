@@ -15,7 +15,8 @@ cookie is `app.sid` in development and `__Host-app.sid` in production
 
 Requests with an `Origin` header on an unsafe method must come from an origin
 listed in `CORS_ORIGINS`. When `ORIGIN_SECRET` is set, every `/api/*` request
-must also send `x-origin-secret`.
+must also send `x-origin-secret`, except the exact OAuth start/callback routes
+in `NODE_ENV=development` (see [Federated login](auth/federated-login.md#development-and-the-origin-secret)).
 
 The client's single axios instance in `client/src/utils/api.ts` performs steps
 1 and 2 automatically.
@@ -39,6 +40,19 @@ secret.
 | `POST` | `/api/auth/logout` | authenticated | — | `200 { "data": { "success": true } }` |
 | `GET` | `/api/auth/me` | authenticated | — | `200 { "data": SessionAccountDto }` |
 | `POST` | `/api/auth/change-password` | authenticated | `{ "currentPassword": string, "newPassword": string }` | `200 { "data": SessionAccountDto }` |
+| `GET` | `/api/auth/providers` | public (rate limited) | — | `200 { "data": { "providers": FederatedProvider[] } }` |
+| `GET` | `/api/auth/microsoft` | public (rate limited) | — | `302` to Microsoft |
+| `GET` | `/api/auth/microsoft/callback` | public (rate limited) | OAuth `code` + `state` | `302` to the success/failure redirect |
+| `GET` | `/api/auth/google` | public (rate limited) | — | `302` to Google |
+| `GET` | `/api/auth/google/callback` | public (rate limited) | OAuth `code` + `state` | `302` to the success/failure redirect |
+| `GET` | `/api/auth/apple` | public (rate limited) | — | `302` to Apple |
+| `POST` | `/api/auth/apple/callback` | public (rate limited) | `form_post` body (`code`, `state`, `id_token`) | `302` to the success/failure redirect |
+
+Federated callbacks never return JSON. Failures redirect to
+`AUTH_FAILURE_REDIRECT?error=<code>`; the codes are `tenant-not-allowed`,
+`domain-not-allowed`, `use-microsoft-login`, `email-not-verified`,
+`account-locked`, `account-banned`, `account-inactive`, `provider-error` and
+`invalid-state`. See [Federated login](auth/federated-login.md).
 
 `SessionAccountDto`:
 
@@ -47,8 +61,8 @@ secret.
   "id": "cuid",
   "email": "user@example.com",
   "name": "User",
-  "role": "staff",
-  "permissions": ["items:read", "items:create"],
+  "role": "student",
+  "permissions": ["docs:read"],
   "status": "active",
   "mustChangePassword": false,
   "lastLogin": "2026-10-29T12:00:00.000Z"
@@ -70,8 +84,8 @@ All account routes require authentication plus the permission shown.
 |---|---|---|---|---|
 | `GET` | `/api/accounts` | `accounts:read` | Query: `page`, `pageSize`, `search`, `role`, `status`, `includeDeleted` | `200 { "data": AccountDto[], "meta": PageMeta }` |
 | `GET` | `/api/accounts/:id` | `accounts:read` | — | `200 { "data": AccountDto }` |
-| `POST` | `/api/accounts` | `accounts:create` | `{ "email", "name", "password", "role" }` | `201 { "data": AccountDto }` |
-| `PATCH` | `/api/accounts/:id` | `accounts:update` | `{ "email"?, "name"?, "role"? }` (at least one) | `200 { "data": AccountDto }` |
+| `POST` | `/api/accounts` | `accounts:create` | `{ "email", "name", "idType", "identifier", "password", "role" }` | `201 { "data": AccountDto }` |
+| `PATCH` | `/api/accounts/:id` | `accounts:update` | `{ "email"?, "name"?, "idType"?, "identifier"?, "role"? }` (at least one) | `200 { "data": AccountDto }` |
 | `POST` | `/api/accounts/:id/status` | `accounts:update-status` | `{ "status": "active" \| "inactive" }` | `200 { "data": AccountDto }` |
 | `POST` | `/api/accounts/:id/password` | `accounts:change-password` | `{ "newPassword": string }` | `200 { "data": AccountDto }` |
 | `DELETE` | `/api/accounts/:id` | `accounts:delete` | — | `200 { "data": AccountDto }` (soft deleted) |
@@ -84,7 +98,9 @@ All account routes require authentication plus the permission shown.
   "id": "cuid",
   "email": "user@example.com",
   "name": "User",
-  "role": "staff",
+  "idType": "account_number",
+  "identifier": "20240001",
+  "role": "student",
   "status": "active",
   "mustChangePassword": false,
   "lastLogin": null,
@@ -99,8 +115,8 @@ All account routes require authentication plus the permission shown.
 `page` is 1-based and defaults to `1`; `pageSize` defaults to `20` and is capped
 at `100`. `PageMeta` is `{ "page", "pageSize", "total" }`.
 
-`search` matches name or email (maximum 100 characters). `role` accepts
-`admin`, `manager`, `staff`, `viewer`. `status` accepts `active` or `inactive`.
+`search` matches name or email (maximum 100 characters). `role` accepts any of
+the seven roles. `status` accepts `active`, `locked`, `banned` or `inactive`.
 `includeDeleted=true` includes soft-deleted accounts.
 
 ### Policy
@@ -109,42 +125,15 @@ at `100`. `PageMeta` is `{ "page", "pageSize", "total" }`.
   (`canAssignRole`).
 - An account can only be changed by an actor who strictly outranks its current
   role (`canManage`). Self-management is rejected.
-- The last active, non-deleted admin cannot be deleted, demoted or disabled.
-- Soft delete anonymises the email to `deleted+<id>@invalid`; restore recovers
-  the previous email from the audit history.
+- The last active, non-deleted `tech_admin` cannot be deleted, demoted or
+  disabled.
+- Soft delete replaces the email and identifier with one-way HMAC hashes and
+  sets `deletedAt`/`deletedBy`. Restore clears those flags but does not recover
+  the original values.
 - Passwords are hashed with bcrypt cost 12. Password history stores
-  `"[changed]"`, never the hash.
+  `"[changed]"`, never the hash. Federated-only accounts have `password: null`.
 - `POST /api/accounts/:id/password` sets `mustChangePassword=true` for the
   target. `POST /api/auth/change-password` clears it for the caller.
-
-## Items (example module)
-
-| Method | Path | Permission | Request | Success response |
-|---|---|---|---|---|
-| `GET` | `/api/items` | `items:read` | Query: `page`, `pageSize`, `q`, `status`, `includeDeleted` | `200 { "data": ItemDto[], "meta": PageMeta }` |
-| `GET` | `/api/items/:id` | `items:read` | — | `200 { "data": ItemDto }` |
-| `POST` | `/api/items` | `items:create` | `{ "name": string, "description"?: string }` | `201 { "data": ItemDto }` |
-| `PATCH` | `/api/items/:id` | `items:update` | `{ "name"?, "description"?, "status"? }` | `200 { "data": ItemDto }` |
-| `DELETE` | `/api/items/:id` | `items:delete` | — | `200 { "data": ItemDto }` (soft deleted) |
-| `POST` | `/api/items/:id/restore` | `items:restore` | — | `200 { "data": ItemDto }` |
-
-`ItemDto`:
-
-```json
-{
-  "id": "cuid",
-  "name": "Example",
-  "description": "Optional text",
-  "status": "active",
-  "createdAt": "2026-10-29T12:00:00.000Z",
-  "updatedAt": "2026-10-29T12:00:00.000Z",
-  "deleted": false
-}
-```
-
-`status` is `active` or `archived`. `q` matches the name. The item module can
-be removed with `node scripts/remove-example.mjs --dry-run`; see
-[example module](example-module.md).
 
 ## In-app documentation
 
@@ -164,7 +153,7 @@ Responses are cached in memory when `NODE_ENV=production`.
 
 | Method | Path | Permission | Response |
 |---|---|---|---|
-| `GET` | `/api/roles` | `roles:read` | `200 { "data": [{ "role": "admin", "permissions": [...] }] }` |
+| `GET` | `/api/roles` | `roles:read` | `200 { "data": [{ "role": "tech_admin", "permissions": [...] }] }` |
 
 The list is read-only and comes from the shared matrix. There is no role CRUD
 API.

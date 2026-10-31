@@ -39,12 +39,26 @@ const errors = {
     roleCannotBeAssigned:
       "No puede asignar un rol igual o superior al suyo.",
     invalidCurrentPassword: "La contraseña actual no es correcta.",
-    itemNotFound: "El elemento no fue encontrado.",
     invalidOrigin: "El origen de la solicitud no está permitido.",
     invalidOriginSecret: "El origen de la solicitud no está permitido.",
     invalidCsrfToken:
       "El token de seguridad no es válido. Recargue la página.",
     invalidCredentials: "Credenciales inválidas.",
+    domainNotAllowed:
+      "Solo las cuentas de Microsoft @unah.hn y @unah.edu.hn pueden iniciar sesión de esta forma.",
+    tenantNotAllowed:
+      "Su organización de Microsoft no está autorizada para usar esta plataforma.",
+    useMicrosoftLogin:
+      "Las cuentas institucionales deben iniciar sesión con Microsoft en \"Empleado o Estudiante\".",
+    accountLocked: "Esta cuenta está bloqueada. Contacte a un administrador.",
+    accountBanned: "Esta cuenta está prohibida. Contacte a un administrador.",
+    accountInactive: "Esta cuenta está inactiva. Contacte a un administrador.",
+    emailNotVerified:
+      "Su proveedor no ha verificado este correo, por lo que no podemos iniciar su sesión.",
+    providerError:
+      "El proveedor de identidad no pudo completar el inicio de sesión. Intente nuevamente.",
+    invalidState:
+      "El intento de inicio de sesión expiró o no es válido. Comience de nuevo.",
   },
 };
 

@@ -25,8 +25,8 @@ const base: SessionAccountDto = {
   id: "1",
   email: "user@example.test",
   name: "User",
-  role: "viewer",
-  permissions: ["items:read"],
+  role: "observer",
+  permissions: ["docs:read"],
   status: "active",
   mustChangePassword: false,
   lastLogin: null,
@@ -59,7 +59,7 @@ describe("RequirePermission", () => {
   });
 
   it("renders the page when the permission is granted", () => {
-    renderGuard({ ...base, role: "admin", permissions: ["accounts:read"] });
+    renderGuard({ ...base, role: "tech_admin", permissions: ["accounts:read"] });
 
     expect(screen.getByText("allowed")).toBeInTheDocument();
     expect(navigate).not.toHaveBeenCalled();

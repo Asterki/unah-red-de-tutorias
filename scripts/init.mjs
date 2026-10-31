@@ -284,7 +284,7 @@ function textFiles(directory, files = []) {
 function buildReplacements(options) {
   const { name, slug, image, owner, repo } = options;
   const replacements = [
-    ["https://github.com/Asterki/template-crud-mariadb-rbac", repo || "https://github.com/OWNER/REPOSITORY"],
+    ["https://github.com/Asterki/unah-red-de-tutorias", repo || "https://github.com/OWNER/REPOSITORY"],
     ["@template/", `@${slug}/`],
     ["template-dev", `${slug}-dev`],
     ["template-prod", `${slug}-prod`],

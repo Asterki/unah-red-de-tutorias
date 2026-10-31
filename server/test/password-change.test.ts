@@ -49,7 +49,7 @@ describeDb("forced password change", () => {
 
   it("blocks everything except self-service auth until the password changes", async () => {
     const account = await seedAccount(db, {
-      role: "admin",
+      role: "tech_admin",
       mustChangePassword: true,
     });
     const agent = await loginAgent(app, account.email, TEST_PASSWORD);
@@ -95,7 +95,7 @@ describeDb("forced password change", () => {
 
   it("rejects the old password after a change", async () => {
     const account = await seedAccount(db, {
-      role: "admin",
+      role: "tech_admin",
       mustChangePassword: true,
     });
     const agent = await loginAgent(app, account.email, TEST_PASSWORD);

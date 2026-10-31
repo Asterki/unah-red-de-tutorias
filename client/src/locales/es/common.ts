@@ -23,7 +23,6 @@ const common = {
   nav: {
     dashboard: "Panel de Control",
     accounts: "Cuentas de Usuario",
-    items: "Elementos",
     roles: "Roles y Permisos",
     docs: "Documentación",
     changePassword: "Cambiar Contraseña",

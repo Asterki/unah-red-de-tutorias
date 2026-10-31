@@ -29,7 +29,6 @@ const API_ERROR_KEYS: Record<string, string> = {
   "cannot-manage-account": "codes.cannotManageAccount",
   "role-cannot-be-assigned": "codes.roleCannotBeAssigned",
   "invalid-current-password": "codes.invalidCurrentPassword",
-  "item-not-found": "codes.itemNotFound",
   "invalid-origin": "codes.invalidOrigin",
   "invalid-origin-secret": "codes.invalidOriginSecret",
   "invalid-csrf-token": "codes.invalidCsrfToken",

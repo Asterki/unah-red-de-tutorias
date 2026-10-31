@@ -6,7 +6,15 @@ const accounts = {
   showDeleted: "Mostrar eliminadas",
   status: {
     active: "Activa",
+    locked: "Bloqueada",
+    banned: "Prohibida",
     inactive: "Inactiva",
+  },
+  idTypes: {
+    account_number: "Número de cuenta",
+    employee_id: "Código de empleado",
+    national_id: "Identidad nacional",
+    passport: "Pasaporte",
   },
   table: {
     name: "Nombre",
@@ -29,6 +37,8 @@ const accounts = {
   fields: {
     name: "Nombre",
     email: "Correo",
+    idType: "Tipo de identificador",
+    identifier: "Identificador",
     password: "Contraseña inicial",
     newPassword: "Nueva contraseña",
   },

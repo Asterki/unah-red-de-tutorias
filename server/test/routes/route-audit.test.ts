@@ -2,15 +2,14 @@ import type { Router } from "express";
 import { describe, expect, it } from "vitest";
 
 import { loadConfig } from "../../src/config/index.js";
+import { resolveProviders } from "../../src/auth/providers.js";
 import { createHealthRouter } from "../../src/routes/health.js";
 import { createAuthRouter } from "../../src/routes/auth.js";
 import { createAccountsRouter } from "../../src/routes/accounts.js";
-import { createItemsRouter } from "../../src/routes/items.js";
 import { createRolesRouter } from "../../src/routes/roles.js";
 import { createDocsRouter } from "../../src/routes/docs.js";
 import { createDocsService } from "../../src/services/docs-service.js";
 import type { AccountService } from "../../src/services/account-service.js";
-import type { ItemService } from "../../src/services/item-service.js";
 
 type Handle = {
   authenticatedGuard?: boolean;
@@ -32,6 +31,13 @@ type StackRouter = {
 const publicRoutes = new Set([
   "POST /api/auth/login",
   "GET /api/auth/csrf",
+  "GET /api/auth/providers",
+  "GET /api/auth/microsoft",
+  "GET /api/auth/microsoft/callback",
+  "GET /api/auth/google",
+  "GET /api/auth/google/callback",
+  "GET /api/auth/apple",
+  "POST /api/auth/apple/callback",
   "GET /healthz",
   "GET /readyz",
 ]);
@@ -64,7 +70,6 @@ function collect(
 }
 
 const service = {} as AccountService;
-const itemService = {} as ItemService;
 const config = loadConfig({
   NODE_ENV: "test",
   PORT: "3000",
@@ -80,9 +85,8 @@ const routers = [
     prefix: "",
     router: createHealthRouter({ prisma: {} as never, logger: {} as never }),
   },
-  { prefix: "/api/auth", router: createAuthRouter(service, config) },
+  { prefix: "/api/auth", router: createAuthRouter(service, config, resolveProviders(config)) },
   { prefix: "/api/accounts", router: createAccountsRouter(service) },
-  { prefix: "/api/items", router: createItemsRouter(itemService) },
   { prefix: "/api/roles", router: createRolesRouter() },
   {
     prefix: "/api/docs",
