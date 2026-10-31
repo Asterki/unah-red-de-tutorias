@@ -43,6 +43,26 @@ point to another file; otherwise `server/.env` is loaded when it exists.
 | `BOOTSTRAP_ADMIN_NAME` | no | `Administrator` | Display name of the first administrator. |
 | `DOCS_DIR` | no | `docs/in-app` | Directory containing the allowlisted in-app markdown pages. |
 | `COOKIE_DOMAIN` | no | empty | Optional cookie `Domain`. Leave empty for `__Host-` cookies. |
+| `SOFT_DELETE_HASH_KEY` | production | `SESSION_SECRET` | HMAC key that replaces unique values of soft-deleted rows. Keep it stable; it is one-way. |
+| `AUTH_CALLBACK_BASE_URL` | when federated | `http://localhost:PORT` | Public origin used to build OAuth callback URLs. |
+| `AUTH_SUCCESS_REDIRECT` | no | `/` | Client path after a successful federated login. |
+| `AUTH_FAILURE_REDIRECT` | no | `/auth/login` | Client path after a failed federated login; receives `?error=<code>`. |
+| `MICROSOFT_CLIENT_ID` | when Microsoft | unset | Entra app registration client ID. |
+| `MICROSOFT_CLIENT_SECRET` | when Microsoft | unset | Entra client secret value. |
+| `MICROSOFT_ALLOWED_TENANT_IDS` | when Microsoft | empty | Comma-separated Entra tenant ID allowlist. |
+| `GOOGLE_CLIENT_ID` | when Google | unset | Google OAuth web client ID. |
+| `GOOGLE_CLIENT_SECRET` | when Google | unset | Google OAuth web client secret. |
+| `APPLE_CLIENT_ID` | when Apple | unset | Apple **Services ID**, not the App ID. |
+| `APPLE_TEAM_ID` | when Apple | unset | Apple Developer Team ID. |
+| `APPLE_KEY_ID` | when Apple | unset | Key ID of the Sign in with Apple `.p8` key. |
+| `APPLE_PRIVATE_KEY` | when Apple | unset | `.p8` contents with escaped newlines. Takes precedence over the path. |
+| `APPLE_PRIVATE_KEY_PATH` | when Apple | unset | Path to the `.p8` file instead of inline contents. |
+
+Each federated provider is enabled only when all of its variables are present.
+With none configured the app still boots, `GET /api/auth/providers` returns an
+empty list and provider routes return `404`. See
+[Federated login](auth/federated-login.md) and
+[Provider setup](auth/provider-setup.md).
 
 The bootstrap password is used only by the seed CLI. It is printed at most once
 and is never written to the logger, the database history or an HTTP response.

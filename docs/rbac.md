@@ -15,34 +15,32 @@ strings.
 
 | Role | Rank | Intent |
 |---|---|---|
-| `admin` | 0 (strongest) | Full access, including every permission added later through `PERMISSIONS`. |
-| `manager` | 1 | Manage accounts and items below manager rank. |
-| `staff` | 2 | Read accounts and roles, create and edit items. |
-| `viewer` | 3 (weakest) | Read items only. |
+| `tech_admin` | 0 (strongest) | Full access, including every permission added later through `PERMISSIONS`. |
+| `general_admin` | 1 | Full account, role and docs administration. |
+| `campus_admin` | 2 | Read/update accounts, change status or passwords, read roles and docs. |
+| `tutor` | 3 | Read documentation. |
+| `student` | 4 | Read documentation. |
+| `external` | 5 | Read documentation (applicant accounts created by Google/Apple). |
+| `observer` | 6 (weakest) | Read documentation (institutional staff accounts created by Microsoft). |
 
-`admin` is `[...PERMISSIONS]`, so a new permission is granted to admins without
-editing the matrix. Other roles must be granted explicitly.
+`tech_admin` is `[...PERMISSIONS]`, so a new permission is granted to that role
+without editing the matrix. Other roles must be granted explicitly.
 
 ## Permission matrix
 
 Generated from `shared/src/rbac/matrix.ts`:
 
-| Permission | admin | manager | staff | viewer |
-|---|---|---|---|---|
-| `accounts:read` | yes | yes | yes | — |
-| `accounts:create` | yes | yes | — | — |
-| `accounts:update` | yes | yes | — | — |
-| `accounts:update-status` | yes | yes | — | — |
-| `accounts:change-password` | yes | yes | — | — |
-| `accounts:delete` | yes | yes | — | — |
-| `accounts:restore` | yes | yes | — | — |
-| `items:read` | yes | yes | yes | yes |
-| `items:create` | yes | yes | yes | — |
-| `items:update` | yes | yes | yes | — |
-| `items:delete` | yes | yes | — | — |
-| `items:restore` | yes | yes | — | — |
-| `roles:read` | yes | yes | yes | — |
-| `docs:read` | yes | yes | — | — |
+| Permission | tech_admin | general_admin | campus_admin | tutor | student | external | observer |
+|---|---|---|---|---|---|---|---|
+| `accounts:read` | yes | yes | yes | — | — | — | — |
+| `accounts:create` | yes | yes | — | — | — | — | — |
+| `accounts:update` | yes | yes | yes | — | — | — | — |
+| `accounts:update-status` | yes | yes | yes | — | — | — | — |
+| `accounts:change-password` | yes | yes | yes | — | — | — | — |
+| `accounts:delete` | yes | yes | — | — | — | — | — |
+| `accounts:restore` | yes | yes | — | — | — | — | — |
+| `roles:read` | yes | yes | yes | — | — | — | — |
+| `docs:read` | yes | yes | yes | yes | yes | yes | yes |
 
 To regenerate this table from the built package:
 
@@ -77,18 +75,18 @@ While `mustChangePassword` is true, every route except `GET /api/auth/me`,
 lower** (stronger) than the target's rank. It never allows self-management.
 
 ```ts
-canManage("admin", "manager") // true
-canManage("manager", "manager") // false
-canManage("manager", "admin") // false
+canManage("tech_admin", "general_admin") // true
+canManage("general_admin", "general_admin") // false
+canManage("general_admin", "tech_admin") // false
 ```
 
 `canAssignRole(actor, newRole)` follows the same rule: an actor can only assign
-roles they outrank. Managers cannot create peers or admins.
+roles they outrank. General admins cannot create peers or tech admins.
 
 The last-admin rule is enforced inside the same database transaction as the
-mutation. The last active, non-deleted `admin` cannot be deleted, demoted or
-disabled. To recover from a manual database edit, promote an account with SQL;
-the session deserialiser reads the role on the next request. There is no API
+mutation. The last active, non-deleted `tech_admin` cannot be deleted, demoted
+or disabled. To recover from a manual database edit, promote an account with
+SQL; the session deserialiser reads the role on the next request. There is no API
 bypass.
 
 ## Add a permission

@@ -22,6 +22,10 @@ Vercel and proxies `/api/*` to the API. MariaDB runs next to the API.
 - [Database](database.md): switching MariaDB, least-privilege users, backups
   and troubleshooting.
 - [RBAC](rbac.md): roles, permissions, `canManage` and the last-admin rule.
+- [Federated login](auth/federated-login.md): Microsoft, Google and Apple
+  flows, linking rules, roles and error codes.
+- [Provider setup](auth/provider-setup.md): obtain every OAuth value and
+  configure redirect URLs for local development and production.
 - [API](api.md): every route, permission, request body and response shape.
 - [Deployment](deployment.md): Vercel, headless API, GHCR and rollback.
 - [Observability](observability.md): stdout logs, Loki/Grafana and optional
