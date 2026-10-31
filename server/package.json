@@ -70,7 +70,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.5",
     "@types/passport": "^1.0.17",
     "@types/passport-apple": "^2.0.3",
     "@types/passport-google-oauth20": "^2.0.17",
