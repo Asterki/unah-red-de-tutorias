@@ -7,21 +7,38 @@ datasource db {
   provider = "mysql"
 }
 
-enum Role {
-  admin
-  manager
-  staff
-  viewer
+//#region Shared
+enum Days {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  saturday
+  sunday
 }
 
-enum AccountStatus {
-  active
-  inactive
+enum SessionModality {
+  in_person
+  hybrid
+  online
 }
 
-enum ItemStatus {
-  active
-  archived
+enum SessionType {
+  one_on_one
+  group
+}
+
+enum EntityType {
+  account
+  campus
+  course
+  course_material
+  tutor_application
+  time_slot
+  session_request
+  programmed_session
+  session_report
 }
 
 model Metadata {
@@ -29,50 +46,21 @@ model Metadata {
 
   createdBy String?
   updatedBy String?
-  deletedBy String?
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deleted   Boolean   @default(false)
-  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  account Account?
-  item    Item?
   history MetadataUpdateHistory[]
 
-  @@index([deleted])
-}
-
-model Account {
-  id String @id @default(cuid())
-
-  email    String @unique
-  name     String
-  password String
-
-  role               Role          @default(viewer)
-  status             AccountStatus @default(active)
-  mustChangePassword Boolean       @default(false)
-  lastLogin          DateTime?
-
-  metadataId String?   @unique
-  metadata   Metadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
-
-  @@index([role])
-  @@index([status])
-}
-
-model Item {
-  id String @id @default(cuid())
-
-  name        String
-  description String?    @db.Text
-  status      ItemStatus @default(active)
-
-  metadataId String?   @unique
-  metadata   Metadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
-
-  @@index([status])
+  account           Account?
+  campus            Campus?
+  course            Course?
+  courseMaterial    CourseMaterial?
+  tutorApplication  TutorApplication?
+  timeSlot          TimeSlot?
+  sessionRequest    SessionRequest?
+  programmedSession ProgrammedSession?
+  sessionReport     SessionReport?
 }
 
 model MetadataUpdateHistory {
@@ -81,14 +69,334 @@ model MetadataUpdateHistory {
   metadataId String
   metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Cascade)
 
+  entityType EntityType
+  entityId   String
+
   updatedAt   DateTime @default(now())
   updatedById String?
   changes     Json
 
   @@index([metadataId])
+  @@index([entityType, entityId])
   @@index([updatedAt])
 }
+//#endregion
 
+//#region Accounts and Roles
+enum Role {
+  tech_admin
+  general_admin
+  campus_admin
+  tutor
+  student
+  external
+  observer
+}
+
+enum AccountStatus {
+  active
+  locked
+  banned
+  inactive
+}
+
+enum IdType {
+  account_number
+  employee_id
+  national_id
+  passport
+}
+
+model AccountRole {
+  id String @id @default(cuid())
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  role Role
+
+  @@unique([accountId, role])
+}
+
+model Account {
+  id String @id @default(cuid())
+
+  email      String @unique // hashed on soft delete
+  name       String
+  idType     IdType
+  identifier String // hashed on soft delete
+  password   String
+
+  roles AccountRole[]
+
+  campusId String?
+  campus   Campus? @relation(fields: [campusId], references: [id], onDelete: SetNull)
+
+  status             AccountStatus @default(active)
+  mustChangePassword Boolean       @default(false)
+  lastLogin          DateTime?
+
+  courseMaterials      CourseMaterial[]
+  tutorApplications    TutorApplication[]
+  timeSlots            TimeSlot[]
+  sessionRequests      SessionRequest[]      @relation("StudentSessionRequests")
+  tutoredSessions      ProgrammedSession[]   @relation("TutorProgrammedSessions")
+  sessionRegistrations SessionRegistration[]
+  sessionReports       SessionReport[]
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@unique([idType, identifier])
+  @@index([status])
+  @@index([campusId])
+  @@index([deletedAt])
+}
+//#endregion
+
+//#region Campuses
+model Campus {
+  id String @id @default(cuid())
+
+  name String
+  code String @unique // hashed on soft delete
+
+  accounts Account[]
+  courses  Course[]
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([name])
+  @@index([deletedAt])
+}
+//#endregion
+
+//#region Courses
+model Course {
+  id String @id @default(cuid())
+
+  name String
+  code String @unique // hashed on soft delete
+
+  campuses  Campus[]
+  materials CourseMaterial[]
+
+  requestedByApplications TutorApplication[] @relation("TutorApplicationRequestedCourses")
+  approvedByApplications  TutorApplication[] @relation("TutorApplicationApprovedCourses")
+  sessionRequests         SessionRequest[]
+  programmedSessions      ProgrammedSession[]
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([name])
+  @@index([deletedAt])
+}
+
+model CourseMaterial {
+  id String @id @default(cuid())
+
+  postedById String?
+  postedBy   Account? @relation(fields: [postedById], references: [id], onDelete: SetNull)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  contents String @db.Text
+  links    Json?
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([courseId])
+  @@index([deletedAt])
+}
+//#endregion
+
+//#region Tutor Application
+enum TutorApplicationStatus {
+  pending
+  approved
+  rejected
+  withdrawn
+}
+
+model TutorApplication {
+  id String @id @default(cuid())
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  hasScholarship   Boolean
+  requestedCourses Course[] @relation("TutorApplicationRequestedCourses") // asked by the tutor
+  approvedCourses  Course[] @relation("TutorApplicationApprovedCourses") // granted by an admin
+  description      String   @db.Text
+
+  status TutorApplicationStatus @default(pending)
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([accountId])
+  @@index([status])
+  @@index([deletedAt])
+}
+//#endregion
+
+//#region Time Slots
+model TimeSlot {
+  id String @id @default(cuid())
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  dayOfWeek Days
+  startTime DateTime @db.Time(0)
+  endTime   DateTime @db.Time(0)
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([accountId, dayOfWeek])
+  @@index([deletedAt])
+}
+//#endregion
+
+//#region Session Request
+model SessionRequest {
+  id String @id @default(cuid())
+
+  studentId String
+  student   Account @relation("StudentSessionRequests", fields: [studentId], references: [id], onDelete: Cascade)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  requestedTime DateTime
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([studentId])
+  @@index([courseId])
+  @@index([deletedAt])
+}
+//#endregion
+
+//#region Session
+enum SessionStatus {
+  scheduled
+  active
+  cancelled
+  finished
+}
+
+model ProgrammedSession {
+  id String @id @default(cuid())
+
+  tutorId String
+  tutor   Account @relation("TutorProgrammedSessions", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  status        SessionStatus @default(scheduled)
+  scheduledTime DateTime
+  modality      SessionModality
+  type          SessionType
+
+  location          String // Could be a place or a link
+  durationInMinutes Int
+  maxStudents       Int
+
+  registrations SessionRegistration[]
+  feedback      SessionFeedback[]
+  reports       SessionReport[]
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([tutorId])
+  @@index([courseId])
+  @@index([scheduledTime])
+  @@index([deletedAt])
+}
+
+model SessionRegistration {
+  sessionId String
+  session   ProgrammedSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   Account @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  attended          Boolean @default(false)
+  feedbackSubmitted Boolean @default(false)
+
+  @@id([sessionId, studentId])
+  @@index([studentId])
+}
+
+// Anonymous by design: no author column.
+model SessionFeedback {
+  id String @id @default(cuid())
+
+  sessionId String
+  session   ProgrammedSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  rating  Int
+  comment String? @db.Text
+
+  @@index([sessionId])
+}
+
+model SessionReport {
+  id String @id @default(cuid())
+
+  sessionId String
+  session   ProgrammedSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  authorId String?
+  author   Account? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  report String @db.Text
+
+  deletedAt DateTime?
+  deletedBy String?
+
+  metadataId String   @unique
+  metadata   Metadata @relation(fields: [metadataId], references: [id], onDelete: Restrict)
+
+  @@index([sessionId])
+  @@index([deletedAt])
+}
+//#endregion
+
+//#region Auth Session
 model Session {
   id        String   @id
   sid       String   @unique
@@ -98,3 +406,4 @@ model Session {
   @@index([expiresAt])
   @@map("sessions")
 }
+//#endregion
