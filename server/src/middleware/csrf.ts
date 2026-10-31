@@ -32,6 +32,16 @@ export function csrfProtection(
       return;
     }
 
+    // Apple posts the callback as a cross-site form with no CSRF token. Its
+    // OAuth `state` cookie provides the equivalent protection.
+    if (
+      req.method === "POST" &&
+      req.path === "/api/auth/apple/callback"
+    ) {
+      next();
+      return;
+    }
+
     const origin = req.get("origin");
     if (origin && !config.corsOrigins.includes(origin)) {
       next(new ForbiddenError("invalid-origin"));

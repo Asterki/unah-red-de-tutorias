@@ -17,9 +17,12 @@ import { requestLogger } from "./middleware/request-logger.js";
 import { corsMiddleWare, securityHeaders } from "./middleware/security.js";
 import { createHealthRouter } from "./routes/health.js";
 import { registerRoutes } from "./routes/index.js";
+import { resolveProviders } from "./auth/providers.js";
+import { configurePassport } from "./auth/passport.js";
+import { configureFederatedStrategies } from "./auth/strategies.js";
 import { createAccountService } from "./services/account-service.js";
 import { createDocsService } from "./services/docs-service.js";
-import { createItemService } from "./services/item-service.js";
+import { createFederatedAuthService } from "./services/federated-auth.service.js";
 import { createSessionManager } from "./services/sessions.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -59,19 +62,34 @@ export function createApp({
   app.use(createHealthRouter({ prisma, logger }));
   app.use("/uploads/", express.static(path.join(__dirname, "../uploads")));
 
-  const sessions = createSessionManager({ config, prisma, logger });
+  const sessions = createSessionManager({ config, prisma });
+  configurePassport({ prisma, logger });
   sessions.loadToServer(app);
 
   app.use(enforcePasswordChange);
-  app.use("/api", originSecret(config));
+  app.use("/api", originSecret(config, logger));
   app.use("/api", globalRateLimit(config));
+  // Apple posts its callback as a cross-site form, so only that route accepts
+  // urlencoded bodies. It is also the only unsafe route exempt from CSRF.
+  app.use(
+    "/api/auth/apple/callback",
+    express.urlencoded({ extended: false, limit: "16kb" }),
+  );
   app.use(csrfProtection(config));
 
+  const providers = resolveProviders(config);
+  const federated = createFederatedAuthService(prisma, {
+    microsoftAllowedTenantIds: config.microsoftAllowedTenantIds,
+  });
+  configureFederatedStrategies({ config, providers, federated });
+
   registerRoutes(app, {
-    accounts: createAccountService(prisma),
+    accounts: createAccountService(prisma, {
+      softDeleteHashKey: config.softDeleteHashKey,
+    }),
     docs: createDocsService({ docsDir: config.docsDir }),
-    items: createItemService(prisma),
     config,
+    providers,
   });
   app.use("/api", notFound);
 

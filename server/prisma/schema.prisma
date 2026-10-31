@@ -107,6 +107,12 @@ enum IdType {
   passport
 }
 
+enum AuthProvider {
+  microsoft
+  google
+  apple
+}
+
 model AccountRole {
   id String @id @default(cuid())
 
@@ -125,9 +131,10 @@ model Account {
   name       String
   idType     IdType
   identifier String // hashed on soft delete
-  password   String
+  password   String? // null for federated-only accounts
 
-  roles AccountRole[]
+  roles      AccountRole[]
+  identities AccountIdentity[]
 
   campusId String?
   campus   Campus? @relation(fields: [campusId], references: [id], onDelete: SetNull)
@@ -154,6 +161,25 @@ model Account {
   @@index([status])
   @@index([campusId])
   @@index([deletedAt])
+}
+
+/// A provider identity linked to an account. Hard-deleted with the account, so
+/// it has no Metadata row and no soft-delete columns.
+model AccountIdentity {
+  id String @id @default(cuid())
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  provider       AuthProvider
+  providerUserId String
+  email          String
+  createdAt      DateTime @default(now())
+  lastUsedAt     DateTime @default(now())
+
+  @@unique([provider, providerUserId])
+  @@unique([accountId, provider])
+  @@index([accountId])
 }
 //#endregion
 

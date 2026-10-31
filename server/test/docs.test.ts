@@ -61,10 +61,10 @@ describeDb("in-app docs API", () => {
     rmSync(outside, { recursive: true, force: true });
   });
 
-  it("allows managers and admins and denies staff and viewers", async () => {
+  it("allows every role with docs:read", async () => {
     await truncateAll(db);
 
-    for (const role of ["admin", "manager"] as const) {
+    for (const role of ["tech_admin", "general_admin"] as const) {
       const account = await seedAccount(db, { role });
       const agent = await loginAgent(app, account.email, "InitialPassword123!");
       const list = await agent.get("/api/docs");
@@ -84,17 +84,19 @@ describeDb("in-app docs API", () => {
       expect(page.body.markdown).toContain("# Operators");
     }
 
-    for (const role of ["staff", "viewer"] as const) {
+    for (const role of ["student", "external", "observer"] as const) {
       const account = await seedAccount(db, { role });
       const agent = await loginAgent(app, account.email, "InitialPassword123!");
-      await agent.get("/api/docs").expect(403);
-      await agent.get("/api/docs/index").expect(403);
+      const list = await agent.get("/api/docs").expect(200);
+      expect(list.body).toEqual(
+        expect.arrayContaining([expect.objectContaining({ slug: "index" })]),
+      );
     }
   });
 
   it("rejects traversal, absolute paths, null bytes and escaping symlinks", async () => {
     await truncateAll(db);
-    const account = await seedAccount(db, { role: "admin" });
+    const account = await seedAccount(db, { role: "tech_admin" });
     const agent = await loginAgent(app, account.email, "InitialPassword123!");
 
     for (const pathname of [

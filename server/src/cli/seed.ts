@@ -62,24 +62,27 @@ export async function seedAdmin({
 
   await runInTransaction(prisma, async (tx) => {
     const metadata = await createMetadata(tx, null);
-    await appendHistory(tx, metadata.id, null, {
-      email,
-      name,
-      role: "admin",
-      status: "active",
-      bootstrap: true,
-    });
 
-    await tx.account.create({
+    const account = await tx.account.create({
       data: {
         email,
         name,
+        idType: "account_number",
+        identifier: "bootstrap-admin",
         password: hash,
-        role: "admin",
         status: "active",
         mustChangePassword: true,
         metadataId: metadata.id,
+        roles: { create: { role: "tech_admin" } },
       },
+    });
+
+    await appendHistory(tx, metadata.id, "account", account.id, null, {
+      email,
+      name,
+      role: "tech_admin",
+      status: "active",
+      bootstrap: true,
     });
   });
 

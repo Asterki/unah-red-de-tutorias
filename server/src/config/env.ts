@@ -83,6 +83,28 @@ const corsOrigins = z.preprocess(
     .transform((v) => v ?? []),
 );
 
+const commaSeparatedList = z.preprocess(
+  (value) =>
+    typeof value === "string"
+      ? value
+          .split(",")
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+      : value,
+  z.array(z.string().min(1)).optional().transform((v) => v ?? []),
+);
+
+const optionalUrl = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.url("must be a valid URL").optional(),
+);
+
+const privateKey = z.preprocess(
+  (value) =>
+    typeof value === "string" ? value.replace(/\\n/g, "\n") : value,
+  z.string().min(1).optional(),
+);
+
 export const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -119,6 +141,23 @@ export const envSchema = z.object({
   BOOTSTRAP_ADMIN_NAME: z.string().min(1).default("Administrator"),
   DOCS_DIR: z.string().min(1).default("docs/in-app"),
   COOKIE_DOMAIN: optionalString,
+  SOFT_DELETE_HASH_KEY: optionalString,
+
+  // Federated login. Each provider is only enabled when all of its variables
+  // are present; see server/src/auth/providers.ts.
+  MICROSOFT_CLIENT_ID: optionalString,
+  MICROSOFT_CLIENT_SECRET: optionalString,
+  MICROSOFT_ALLOWED_TENANT_IDS: commaSeparatedList,
+  GOOGLE_CLIENT_ID: optionalString,
+  GOOGLE_CLIENT_SECRET: optionalString,
+  APPLE_CLIENT_ID: optionalString,
+  APPLE_TEAM_ID: optionalString,
+  APPLE_KEY_ID: optionalString,
+  APPLE_PRIVATE_KEY: privateKey,
+  APPLE_PRIVATE_KEY_PATH: optionalString,
+  AUTH_CALLBACK_BASE_URL: optionalUrl,
+  AUTH_SUCCESS_REDIRECT: z.string().min(1).default("/"),
+  AUTH_FAILURE_REDIRECT: z.string().min(1).default("/auth/login"),
 });
 
 export const appConfigSchema = envSchema.transform((env) => ({
@@ -148,6 +187,22 @@ export const appConfigSchema = envSchema.transform((env) => ({
   bootstrapAdminName: env.BOOTSTRAP_ADMIN_NAME,
   docsDir: env.DOCS_DIR,
   cookieDomain: env.COOKIE_DOMAIN,
+  softDeleteHashKey: env.SOFT_DELETE_HASH_KEY ?? env.SESSION_SECRET,
+  microsoftClientId: env.MICROSOFT_CLIENT_ID,
+  microsoftClientSecret: env.MICROSOFT_CLIENT_SECRET,
+  microsoftAllowedTenantIds: Object.freeze(
+    env.MICROSOFT_ALLOWED_TENANT_IDS.map((tenant) => tenant.toLowerCase()),
+  ),
+  googleClientId: env.GOOGLE_CLIENT_ID,
+  googleClientSecret: env.GOOGLE_CLIENT_SECRET,
+  appleClientId: env.APPLE_CLIENT_ID,
+  appleTeamId: env.APPLE_TEAM_ID,
+  appleKeyId: env.APPLE_KEY_ID,
+  applePrivateKey: env.APPLE_PRIVATE_KEY,
+  applePrivateKeyPath: env.APPLE_PRIVATE_KEY_PATH,
+  authCallbackBaseUrl: env.AUTH_CALLBACK_BASE_URL?.replace(/\/+$/, ""),
+  authSuccessRedirect: env.AUTH_SUCCESS_REDIRECT,
+  authFailureRedirect: env.AUTH_FAILURE_REDIRECT,
 }));
 
 export const seedEnvSchema = envSchema

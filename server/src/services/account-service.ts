@@ -3,6 +3,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import type {
   AccountDto,
   CreateAccountRequest,
+  IdType,
   ListAccountsQuery,
   Paginated,
   Role,
@@ -15,6 +16,7 @@ import {
   restore,
   softDelete,
 } from "../db/audit.js";
+import { hashUniqueValue } from "../db/soft-delete.js";
 import { runInTransaction, type TransactionClient } from "../db/tx.js";
 import {
   ConflictError,
@@ -29,6 +31,7 @@ import {
   assertNotLastAdmin,
   assertNotSelf,
 } from "../rbac/account-policy.js";
+import { primaryRole } from "../rbac/primary-role.js";
 
 const BCRYPT_COST = 12;
 
@@ -37,8 +40,12 @@ export type AccountActor = {
   role: Role;
 };
 
-type AccountWithMetadata = Prisma.AccountGetPayload<{
-  include: { metadata: true };
+export type AccountServiceOptions = {
+  softDeleteHashKey: string;
+};
+
+type AccountWithRelations = Prisma.AccountGetPayload<{
+  include: { metadata: true; roles: true };
 }>;
 
 function isUniqueViolation(error: unknown): boolean {
@@ -52,48 +59,32 @@ async function findAccount(
   tx: TransactionClient,
   id: string,
   options: { includeDeleted?: boolean } = {},
-): Promise<AccountWithMetadata> {
+): Promise<AccountWithRelations> {
   const account = await tx.account.findUnique({
     where: { id },
-    include: { metadata: true },
+    include: { metadata: true, roles: true },
   });
 
-  if (
-    !account ||
-    (!options.includeDeleted && account.metadata?.deleted === true)
-  ) {
+  if (!account || (!options.includeDeleted && account.deletedAt !== null)) {
     throw new NotFoundError("account-not-found");
   }
 
   return account;
 }
 
-async function metadataIdFor(
-  tx: TransactionClient,
-  account: AccountWithMetadata,
-  actorId: string,
-): Promise<string> {
-  if (account.metadataId) {
-    return account.metadataId;
-  }
-  const metadata = await createMetadata(tx, actorId);
-  await tx.account.update({
-    where: { id: account.id },
-    data: { metadataId: metadata.id },
-  });
-  return metadata.id;
-}
-
-export function createAccountService(prisma: PrismaClient) {
+export function createAccountService(
+  prisma: PrismaClient,
+  { softDeleteHashKey }: AccountServiceOptions,
+) {
   return {
     async list(input: ListAccountsQuery): Promise<Paginated<AccountDto>> {
       const where: Prisma.AccountWhereInput = {};
 
       if (!input.includeDeleted) {
-        where.metadata = { is: { deleted: false } };
+        where.deletedAt = null;
       }
       if (input.role) {
-        where.role = input.role;
+        where.roles = { some: { role: input.role } };
       }
       if (input.status) {
         where.status = input.status;
@@ -112,7 +103,7 @@ export function createAccountService(prisma: PrismaClient) {
           skip,
           take,
           orderBy: { name: "asc" },
-          include: { metadata: true },
+          include: { metadata: true, roles: true },
         }),
         prisma.account.count({ where }),
       ]);
@@ -131,9 +122,9 @@ export function createAccountService(prisma: PrismaClient) {
     async get(id: string): Promise<AccountDto> {
       const account = await prisma.account.findUnique({
         where: { id },
-        include: { metadata: true },
+        include: { metadata: true, roles: true },
       });
-      if (!account) {
+      if (!account || account.deletedAt !== null) {
         throw new NotFoundError("account-not-found");
       }
       return toAccountDto(account);
@@ -146,30 +137,42 @@ export function createAccountService(prisma: PrismaClient) {
       assertCanAssign(actor.role, input.role);
 
       const email = input.email.trim().toLowerCase();
+      const identifier = input.identifier.trim();
       const password = await bcrypt.hash(input.password, BCRYPT_COST);
 
       try {
         return await runInTransaction(prisma, async (tx) => {
           const metadata = await createMetadata(tx, actor.id);
-          await appendHistory(tx, metadata.id, actor.id, {
-            email,
-            name: input.name,
-            role: input.role,
-            status: "active",
-          });
 
           const account = await tx.account.create({
             data: {
               email,
               name: input.name,
+              idType: input.idType,
+              identifier,
               password,
-              role: input.role,
               status: "active",
               mustChangePassword: true,
               metadataId: metadata.id,
+              roles: { create: { role: input.role } },
             },
-            include: { metadata: true },
+            include: { metadata: true, roles: true },
           });
+
+          await appendHistory(
+            tx,
+            metadata.id,
+            "account",
+            account.id,
+            actor.id,
+            {
+              email,
+              name: input.name,
+              idType: input.idType,
+              role: input.role,
+              status: "active",
+            },
+          );
 
           return toAccountDto(account);
         });
@@ -189,7 +192,8 @@ export function createAccountService(prisma: PrismaClient) {
       try {
         return await runInTransaction(prisma, async (tx) => {
           const target = await findAccount(tx, id);
-          assertCanManage(actor.role, target.role);
+          const targetRole = primaryRole(target.roles);
+          assertCanManage(actor.role, targetRole);
 
           const changes: Record<string, unknown> = {};
           const data: Prisma.AccountUpdateInput = {};
@@ -205,27 +209,47 @@ export function createAccountService(prisma: PrismaClient) {
             data.name = input.name;
             changes.name = { from: target.name, to: input.name };
           }
-          if (input.role !== undefined && input.role !== target.role) {
+          if (input.idType !== undefined && input.idType !== target.idType) {
+            data.idType = input.idType;
+            changes.idType = { from: target.idType, to: input.idType };
+          }
+          if (
+            input.identifier !== undefined &&
+            input.identifier.trim() !== target.identifier
+          ) {
+            data.identifier = input.identifier.trim();
+            changes.identifier = { from: target.identifier, to: input.identifier };
+          }
+          if (input.role !== undefined && input.role !== targetRole) {
             assertCanAssign(actor.role, input.role);
             await assertNotLastAdmin(tx, target.id, { role: input.role });
-            data.role = input.role;
-            changes.role = { from: target.role, to: input.role };
+            data.roles = {
+              deleteMany: {},
+              create: { role: input.role },
+            };
+            changes.role = { from: targetRole, to: input.role };
           }
 
           if (Object.keys(changes).length === 0) {
             return toAccountDto(target);
           }
 
-          const metadataId = await metadataIdFor(tx, target, actor.id);
           data.metadata = { update: { updatedBy: actor.id } };
 
           const updated = await tx.account.update({
             where: { id: target.id },
             data,
-            include: { metadata: true },
+            include: { metadata: true, roles: true },
           });
 
-          await appendHistory(tx, metadataId, actor.id, changes);
+          await appendHistory(
+            tx,
+            target.metadataId,
+            "account",
+            target.id,
+            actor.id,
+            changes,
+          );
           return toAccountDto(updated);
         });
       } catch (error) {
@@ -243,22 +267,26 @@ export function createAccountService(prisma: PrismaClient) {
     ): Promise<AccountDto> {
       return runInTransaction(prisma, async (tx) => {
         const target = await findAccount(tx, id);
-        assertCanManage(actor.role, target.role);
+        assertCanManage(actor.role, primaryRole(target.roles));
         await assertNotLastAdmin(tx, target.id, { status });
 
-        const metadataId = await metadataIdFor(tx, target, actor.id);
         const updated = await tx.account.update({
           where: { id: target.id },
           data: {
             status,
             metadata: { update: { updatedBy: actor.id } },
           },
-          include: { metadata: true },
+          include: { metadata: true, roles: true },
         });
 
-        await appendHistory(tx, metadataId, actor.id, {
-          status: { from: target.status, to: status },
-        });
+        await appendHistory(
+          tx,
+          target.metadataId,
+          "account",
+          target.id,
+          actor.id,
+          { status: { from: target.status, to: status } },
+        );
 
         return toAccountDto(updated);
       });
@@ -270,8 +298,11 @@ export function createAccountService(prisma: PrismaClient) {
       newPassword: string,
     ): Promise<AccountDto> {
       const account = await prisma.account.findUnique({ where: { id } });
-      if (!account) {
+      if (!account || account.deletedAt !== null) {
         throw new NotFoundError("account-not-found");
+      }
+      if (!account.password) {
+        throw new ValidationError("password-login-unavailable");
       }
 
       const valid = await bcrypt.compare(currentPassword, account.password);
@@ -283,7 +314,6 @@ export function createAccountService(prisma: PrismaClient) {
 
       return runInTransaction(prisma, async (tx) => {
         const current = await findAccount(tx, id);
-        const metadataId = await metadataIdFor(tx, current, id);
 
         const updated = await tx.account.update({
           where: { id },
@@ -292,13 +322,17 @@ export function createAccountService(prisma: PrismaClient) {
             mustChangePassword: false,
             metadata: { update: { updatedBy: id } },
           },
-          include: { metadata: true },
+          include: { metadata: true, roles: true },
         });
 
-        await appendHistory(tx, metadataId, id, {
-          password: "[changed]",
-          mustChangePassword: false,
-        });
+        await appendHistory(
+          tx,
+          current.metadataId,
+          "account",
+          id,
+          id,
+          { password: "[changed]", mustChangePassword: false },
+        );
 
         return toAccountDto(updated);
       });
@@ -309,18 +343,20 @@ export function createAccountService(prisma: PrismaClient) {
       newPassword: string,
       actor: AccountActor,
     ): Promise<AccountDto> {
-      const target = await prisma.account.findUnique({ where: { id } });
-      if (!target) {
+      const target = await prisma.account.findUnique({
+        where: { id },
+        include: { roles: true },
+      });
+      if (!target || target.deletedAt !== null) {
         throw new NotFoundError("account-not-found");
       }
       assertNotSelf(actor.id, target.id);
-      assertCanManage(actor.role, target.role);
+      assertCanManage(actor.role, primaryRole(target.roles));
 
       const password = await bcrypt.hash(newPassword, BCRYPT_COST);
 
       return runInTransaction(prisma, async (tx) => {
         const current = await findAccount(tx, id);
-        const metadataId = await metadataIdFor(tx, current, actor.id);
 
         const updated = await tx.account.update({
           where: { id },
@@ -329,13 +365,17 @@ export function createAccountService(prisma: PrismaClient) {
             mustChangePassword: true,
             metadata: { update: { updatedBy: actor.id } },
           },
-          include: { metadata: true },
+          include: { metadata: true, roles: true },
         });
 
-        await appendHistory(tx, metadataId, actor.id, {
-          password: "[changed]",
-          mustChangePassword: true,
-        });
+        await appendHistory(
+          tx,
+          current.metadataId,
+          "account",
+          target.id,
+          actor.id,
+          { password: "[changed]", mustChangePassword: true },
+        );
 
         return toAccountDto(updated);
       });
@@ -345,24 +385,37 @@ export function createAccountService(prisma: PrismaClient) {
       return runInTransaction(prisma, async (tx) => {
         const target = await findAccount(tx, id);
         assertNotSelf(actor.id, target.id);
-        assertCanManage(actor.role, target.role);
+        assertCanManage(actor.role, primaryRole(target.roles));
         await assertNotLastAdmin(tx, target.id, { deleted: true });
 
-        const metadataId = await metadataIdFor(tx, target, actor.id);
-        await softDelete(tx, metadataId, actor.id);
+        await softDelete(
+          tx,
+          target.metadataId,
+          "account",
+          target.id,
+          actor.id,
+        );
 
-        const tombstone = `deleted+${target.id}@invalid`;
         const updated = await tx.account.update({
           where: { id: target.id },
           data: {
-            email: tombstone,
+            email: hashUniqueValue(
+              softDeleteHashKey,
+              "email",
+              target.id,
+              target.email,
+            ),
+            identifier: hashUniqueValue(
+              softDeleteHashKey,
+              "identifier",
+              target.id,
+              target.identifier,
+            ),
+            deletedAt: new Date(),
+            deletedBy: actor.id,
             metadata: { update: { updatedBy: actor.id } },
           },
-          include: { metadata: true },
-        });
-
-        await appendHistory(tx, metadataId, actor.id, {
-          email: { from: target.email, to: tombstone },
+          include: { metadata: true, roles: true },
         });
 
         return toAccountDto(updated);
@@ -373,56 +426,27 @@ export function createAccountService(prisma: PrismaClient) {
       try {
         return await runInTransaction(prisma, async (tx) => {
           const target = await findAccount(tx, id, { includeDeleted: true });
-          if (target.metadata?.deleted !== true) {
+          if (target.deletedAt === null) {
             throw new NotFoundError("account-not-found");
           }
-          assertCanManage(actor.role, target.role);
+          assertCanManage(actor.role, primaryRole(target.roles));
 
-          const metadataId = target.metadataId ?? target.metadata?.id;
-          if (!metadataId) {
-            throw new NotFoundError("account-not-found");
-          }
-
-          const history = await tx.metadataUpdateHistory.findMany({
-            where: { metadataId },
-            orderBy: { updatedAt: "desc" },
-          });
-
-          let originalEmail: string | undefined;
-          for (const row of history) {
-            const changes = row.changes as {
-              email?: { from?: string; to?: string };
-            };
-            if (
-              changes.email?.from &&
-              changes.email.to === target.email &&
-              changes.email.from !== target.email
-            ) {
-              originalEmail = changes.email.from;
-              break;
-            }
-          }
-
-          await restore(tx, metadataId, actor.id);
-
-          const data: Prisma.AccountUpdateInput = {
-            metadata: { update: { updatedBy: actor.id } },
-          };
-          if (originalEmail && originalEmail !== target.email) {
-            data.email = originalEmail;
-          }
+          await restore(
+            tx,
+            target.metadataId,
+            "account",
+            target.id,
+            actor.id,
+          );
 
           const updated = await tx.account.update({
             where: { id: target.id },
-            data,
-            include: { metadata: true },
-          });
-
-          await appendHistory(tx, metadataId, actor.id, {
-            deleted: false,
-            ...(originalEmail && originalEmail !== target.email
-              ? { email: { from: target.email, to: originalEmail } }
-              : {}),
+            data: {
+              deletedAt: null,
+              deletedBy: null,
+              metadata: { update: { updatedBy: actor.id } },
+            },
+            include: { metadata: true, roles: true },
           });
 
           return toAccountDto(updated);
@@ -438,3 +462,13 @@ export function createAccountService(prisma: PrismaClient) {
 }
 
 export type AccountService = ReturnType<typeof createAccountService>;
+
+/** Identifier type used for placeholder identifiers on federated accounts. */
+export const ID_TYPE_FOR_ROLE: Record<
+  Extract<Role, "student" | "observer" | "external">,
+  IdType
+> = {
+  student: "account_number",
+  observer: "employee_id",
+  external: "passport",
+};

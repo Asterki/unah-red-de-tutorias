@@ -113,7 +113,7 @@ The schema lives in `server/prisma/schema.prisma`. Summary:
 
 | Area | Models |
 |---|---|
-| Identity | `Account`, `AccountRole` |
+| Identity | `Account`, `AccountIdentity`, `AccountRole` |
 | Structure | `Campus` (an account belongs to at most one), `Course` (many-to-many with `Campus`), `CourseMaterial` |
 | Tutor onboarding | `TutorApplication` (`requestedCourses` = what the tutor asked for, `approvedCourses` = what an admin granted), `TimeSlot` (weekly availability, time of day) |
 | Sessions | `SessionRequest`, `ProgrammedSession`, `SessionRegistration`, `SessionFeedback`, `SessionReport` |
@@ -125,6 +125,16 @@ Rules specific to this domain:
   `idType` (`account_number`, `employee_id`, `national_id`, `passport`) says
   what `identifier` means. They are unique together. Do not reintroduce
   `accountNumber`. `Role` is separate: it controls permissions, not identity.
+- **`Account.password` is nullable.** Federated-only accounts have no password;
+  the password login path must reject a null hash before calling bcrypt.
+- **Federated accounts use placeholder identifiers.** Providers do not return
+  the institutional number. On creation use the role mapping
+  (`student` → `account_number`, `observer` → `employee_id`, `external` →
+  `passport`) and `identifier = "pending:" + cuid`. An administrator completes
+  the real value later; there is no self-service completion flow.
+- **`AccountIdentity` is a provider link.** It is a child table (no Metadata,
+  no soft delete) with `@@unique([provider, providerUserId])` and
+  `@@unique([accountId, provider])`. Never store access, refresh or ID tokens.
 - **`SessionFeedback` is anonymous.** It has no author column. Never add one,
   never join it to a student, and never log who wrote it. Duplicate prevention
   uses `SessionRegistration.feedbackSubmitted`.
@@ -134,6 +144,51 @@ Rules specific to this domain:
   plus `dayOfWeek`; do not store full dates there.
 - **JSON columns** (`CourseMaterial.links`) are validated with a shared Zod
   schema before they are written. MariaDB has no scalar lists.
+
+## Federated authentication
+
+Passport strategies live in `server/src/auth/`; the account rules live in
+`server/src/services/federated-auth.service.ts`. All methods share the existing
+session (`sessions` table, `req.login`, CSRF, `lastLogin`); do not add a second
+session system.
+
+- **Enabled providers are configuration-driven.** A provider is enabled only
+  when every variable for it is set: Microsoft (`MICROSOFT_CLIENT_ID`,
+  `MICROSOFT_CLIENT_SECRET`, non-empty `MICROSOFT_ALLOWED_TENANT_IDS`), Google
+  (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`), Apple (`APPLE_CLIENT_ID`,
+  `APPLE_TEAM_ID`, `APPLE_KEY_ID`, and `APPLE_PRIVATE_KEY` or
+  `APPLE_PRIVATE_KEY_PATH`). `AUTH_CALLBACK_BASE_URL` builds callback URLs;
+  `AUTH_SUCCESS_REDIRECT` and `AUTH_FAILURE_REDIRECT` are client paths.
+- **Microsoft** uses the multi-tenant `organizations` authority. Validate the
+  ID token `tid` against `MICROSOFT_ALLOWED_TENANT_IDS`; never trust `email`
+  alone. Require an exact `@unah.hn` (`student`) or `@unah.edu.hn` (`observer`)
+  domain.
+- **Google and Apple** are for applicants (`external`). Reject the two UNAH
+  domains (and Google `hd`), and require a verified email. Apple may return a
+  private relay address and only sends name/email on first authorization.
+- **Linking:** look up `AccountIdentity` by provider + subject; otherwise find a
+  live account by lowercase email and link it only after the provider rules
+  pass. Never change an existing account's roles at login. Never match or revive
+  a soft-deleted account. Create `Metadata`, `Account`, `AccountRole`,
+  `AccountIdentity` and the history row in one transaction.
+- **Status:** reject `locked`, `banned` and `inactive` with distinct codes;
+  update `lastLogin` on success.
+- **Routes:** `GET /api/auth/providers`; `GET /api/auth/<provider>`;
+  `GET /api/auth/microsoft/callback`; `GET /api/auth/google/callback`;
+  `POST /api/auth/apple/callback` (Apple uses `form_post`). Callbacks redirect
+  with stable error codes and never return JSON. Apple's callback is exempt
+  from CSRF but validates the signed `state` cookie; only that exact route is
+  exempt.
+- **Logging:** log provider, outcome and error code only. Never log tokens,
+  authorization codes, secrets, cookies, auth headers or email bodies.
+- **Development origin-secret bypass:** only when `NODE_ENV === "development"`,
+  and only for the exact `METHOD + path` OAuth start/callback pairs in
+  `server/src/middleware/origin-secret.ts`, may `/api/*` skip
+  `x-origin-secret`. Production and every other environment must route OAuth
+  through the proxy. No env flag enables this. The server logs a warning once
+  at startup when the bypass is active.
+- **Shared domain rules stay pure.** `shared/src/domain/federated-email.ts` is
+  Prisma-free and owns email/domain classification; keep it table-tested.
 
 ## Data layer conventions
 
@@ -310,3 +365,9 @@ roles: `tech_admin`, `general_admin`, `campus_admin`, `tutor`, `student`,
 - Add an author, student or account link to `SessionFeedback`.
 - Add a dependency without checking `knip` (`npm --prefix <pkg> run knip`).
 - Commit generated `dist/`, `coverage/` or `site/` output.
+- Store provider access, refresh or ID tokens, or trust an unverified email.
+- Match a Microsoft login by email without the `tid` allowlist check.
+- Allow `*unah*` substring or suffix-without-dot domain matches.
+- Revive a soft-deleted account through federated login or change an existing
+  account's roles at login.
+- Enable the origin-secret bypass outside development.

@@ -10,6 +10,8 @@ export type AdminChange = {
   deleted?: boolean;
 };
 
+const LAST_ADMIN_ROLE: Role = "tech_admin";
+
 export function assertCanManage(actor: Role, targetRole: Role): void {
   if (!canManage(actor, targetRole)) {
     throw new ForbiddenError("cannot-manage-account");
@@ -29,7 +31,7 @@ export function assertNotSelf(actorId: string, targetId: string): void {
 }
 
 /**
- * Reject a change that would remove the only active, non-deleted admin.
+ * Reject a change that would remove the only active, non-deleted tech admin.
  * Must run inside the same transaction as the write.
  */
 export async function assertNotLastAdmin(
@@ -40,23 +42,27 @@ export async function assertNotLastAdmin(
   const target = await tx.account.findUnique({
     where: { id: targetId },
     select: {
-      role: true,
+      roles: { select: { role: true } },
       status: true,
-      metadata: { select: { deleted: true } },
+      deletedAt: true,
     },
   });
 
+  const isLastAdminRole = target?.roles.some(
+    (entry) => entry.role === LAST_ADMIN_ROLE,
+  );
+
   if (
     !target ||
-    target.role !== "admin" ||
+    !isLastAdminRole ||
     target.status !== "active" ||
-    target.metadata?.deleted === true
+    target.deletedAt !== null
   ) {
     return;
   }
 
   const remainsAdmin =
-    (change.role === undefined || change.role === "admin") &&
+    (change.role === undefined || change.role === LAST_ADMIN_ROLE) &&
     (change.status === undefined || change.status === "active") &&
     change.deleted !== true;
 
@@ -66,9 +72,9 @@ export async function assertNotLastAdmin(
 
   const admins = await tx.account.count({
     where: {
-      role: "admin",
       status: "active",
-      OR: [{ metadata: null }, { metadata: { is: { deleted: false } } }],
+      deletedAt: null,
+      roles: { some: { role: LAST_ADMIN_ROLE } },
     },
   });
 

@@ -65,7 +65,7 @@ describeDb("http hardening", () => {
 
   it("sets hardened session and CSRF cookies in production", async () => {
     const app = appFor({ NODE_ENV: "production", TRUST_PROXY: "1" });
-    const account = await seedAccount(db, { role: "admin" });
+    const account = await seedAccount(db, { role: "tech_admin" });
 
     const csrfResponse = await request(app)
       .get("/api/auth/csrf")
@@ -167,10 +167,10 @@ describeDb("http hardening", () => {
   it("updates lastLogin and rehashes an old bcrypt cost", async () => {
     const app = appFor();
     const account = await seedAccount(db, {
-      role: "staff",
+      role: "general_admin",
       password: TEST_PASSWORD,
     });
-    expect(bcrypt.getRounds(account.password)).toBe(4);
+    expect(bcrypt.getRounds(account.password!)).toBe(4);
 
     const agent = await loginAgent(app, account.email, TEST_PASSWORD);
     const me = await agent.get("/api/auth/me").expect(200);
@@ -180,12 +180,12 @@ describeDb("http hardening", () => {
       where: { id: account.id },
     });
     expect(updated.lastLogin).toBeInstanceOf(Date);
-    expect(bcrypt.getRounds(updated.password)).toBe(12);
+    expect(bcrypt.getRounds(updated.password!)).toBe(12);
   });
 
   it("destroys the session on logout", async () => {
     const app = appFor();
-    const account = await seedAccount(db, { role: "admin" });
+    const account = await seedAccount(db, { role: "tech_admin" });
     const agent = await loginAgent(app, account.email, TEST_PASSWORD);
 
     await agent.get("/api/auth/me").expect(200);

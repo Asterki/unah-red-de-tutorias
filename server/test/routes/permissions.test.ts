@@ -1,4 +1,5 @@
 import {
+  ROLES,
   roleHasPermission,
   type Permission,
   type Role,
@@ -61,27 +62,19 @@ describeDb("permission matrix", () => {
       Role,
       { id: string; email: string }
     >;
-    for (const role of ["admin", "manager", "staff", "viewer"] as const) {
+    for (const role of ROLES) {
       const account = await seedAccount(db, { role });
       accounts[role] = { id: account.id, email: account.email };
     }
 
-    const targets = await Promise.all([
-      seedAccount(db, { role: "staff" }),
-      seedAccount(db, { role: "staff" }),
-      seedAccount(db, { role: "staff" }),
-      seedAccount(db, { role: "staff" }),
-    ]);
-    const deletedTargets = await Promise.all([
-      seedAccount(db, { role: "staff", deleted: true }),
-      seedAccount(db, { role: "staff", deleted: true }),
-      seedAccount(db, { role: "staff", deleted: true }),
-      seedAccount(db, { role: "staff", deleted: true }),
-    ]);
+    const targets = await Promise.all(
+      ROLES.map(() => seedAccount(db, { role: "student" })),
+    );
+    const deletedTargets = await Promise.all(
+      ROLES.map(() => seedAccount(db, { role: "student", deleted: true })),
+    );
 
-    const roles = ["admin", "manager", "staff", "viewer"] as const;
-
-    for (const [index, role] of roles.entries()) {
+    for (const [index, role] of ROLES.entries()) {
       const agent = await login(accounts[role].email);
       const token = await csrfToken(agent);
       const target = targets[index]!;
@@ -212,17 +205,17 @@ describeDb("permission matrix", () => {
 
   it("returns a session DTO with computed permissions on login and me", async () => {
     await truncateAll(db);
-    const staff = await seedAccount(db, {
-      role: "staff",
+    const campusAdmin = await seedAccount(db, {
+      role: "campus_admin",
       email: testEmail("me"),
     });
-    const agent = await login(staff.email);
+    const agent = await login(campusAdmin.email);
 
     const me = await agent.get("/api/auth/me").expect(200);
     expect(me.body.data).toMatchObject({
-      id: staff.id,
-      email: staff.email,
-      role: "staff",
+      id: campusAdmin.id,
+      email: campusAdmin.email,
+      role: "campus_admin",
     });
     expect(me.body.data.permissions).toContain("accounts:read");
     expect(me.body.data.permissions).not.toContain("accounts:delete");
