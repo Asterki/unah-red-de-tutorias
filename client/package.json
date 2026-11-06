@@ -34,7 +34,7 @@
     "@reduxjs/toolkit": "^2.9.1",
     "@tanstack/react-router": "^1.132.0",
     "@unah-red-tutores/shared": "file:../shared",
-    "antd": "^5.27.6",
+    "antd": "^6.6.8",
     "axios": "^1.12.2",
     "i18next": "^26.5.11",
     "immer": "^11.2.9",
