@@ -31,11 +31,11 @@
     "knip": "knip --no-exit-code"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.9.1",
+    "@reduxjs/toolkit": "^2.14.0",
     "@tanstack/react-router": "^1.132.0",
     "@unah-red-tutores/shared": "file:../shared",
     "antd": "^5.27.6",
-    "axios": "^1.12.2",
+    "axios": "^1.21.1",
     "i18next": "^26.5.11",
     "immer": "^11.2.9",
     "react": "^19.0.0",
@@ -49,15 +49,15 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@tailwindcss/vite": "^4.0.6",
-    "@tanstack/router-plugin": "^1.132.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@tanstack/router-plugin": "^1.169.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.19.2",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.3.0",
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
@@ -65,12 +65,12 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
     "jsdom": "^30.1.3",
-    "knip": "^6.43.0",
+    "knip": "^6.44.2",
     "prettier": "^3.9.10",
     "tailwindcss": "^4.0.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.1",
-    "vite": "^8.3.5",
+    "vite": "^8.3.7",
     "vitest": "^5.0.5"
   }
 }
